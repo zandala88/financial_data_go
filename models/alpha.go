@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"context"
+	"financia/public"
+	"gorm.io/gorm"
+	"time"
+)
 
 type AlphaInfo struct {
 	Id        int64      `gorm:"primaryKey;autoIncrement;column:f_id;comment:'主键 ID'" json:"id"`
@@ -14,4 +19,33 @@ type AlphaInfo struct {
 
 func (AlphaInfo) TableName() string {
 	return "t_alpha_info"
+}
+
+type AlphaInfoRepo struct {
+	db  *gorm.DB
+	ctx context.Context
+}
+
+func NewAlphaInfoRepo(ctx context.Context) *AlphaInfoRepo {
+	return &AlphaInfoRepo{
+		db:  public.DB.WithContext(ctx),
+		ctx: ctx,
+	}
+}
+
+func (a *AlphaInfoRepo) CreateAlphaInfo(alphaInfo *AlphaInfo) error {
+	err := a.db.Create(alphaInfo).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *AlphaInfoRepo) GetSymbolByType(t int) ([]*AlphaInfo, error) {
+	var alphaInfos []*AlphaInfo
+	err := a.db.Model(&AlphaInfo{}).Where("f_type = ?", t).Find(&alphaInfos).Error
+	if err != nil {
+		return nil, err
+	}
+	return alphaInfos, nil
 }

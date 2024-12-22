@@ -2,18 +2,18 @@ package config
 
 import (
 	"github.com/spf13/viper"
+	"log"
 )
 
 var Configs Config
 
 type Config struct {
-	MySQL    MySQLConfig
-	Redis    RedisConfig
-	Auth     AuthConfig
-	App      AppConfig
-	ETCD     ETCDConfig
-	RabbitMQ RabbitMQConfig
-	Logger   LoggerConfig
+	MySQL  MySQLConfig
+	Redis  RedisConfig
+	Auth   AuthConfig
+	App    AppConfig
+	Alpha  AlphaConfig
+	Logger LoggerConfig
 }
 
 type MySQLConfig struct {
@@ -45,25 +45,12 @@ type RedisConfig struct {
 }
 
 type AppConfig struct {
-	Salt              string // 密码加盐
-	IP                string // 应用程序 IP 地址
-	HTTPServerPort    string // HTTP 服务器端口
-	WebsocketPort     string // WebSocket 服务器端口
-	RPCPort           string // RPC 服务器端口
-	WorkerPoolSize    uint32 // 业务 worker 队列数量
-	MaxWorkerTask     int    // 业务 worker 对应负责的任务队列最大任务存储数量
-	HeartbeatTimeout  int    // 心跳超时时间（秒）
-	HeartbeatInterval int    // 超时连接检测间隔（秒）
+	IP   string // 应用程序 IP 地址
+	Port string // HTTP 服务器端口
 }
 
-type ETCDConfig struct {
-	Endpoints  []string // endpoints 列表
-	Timeout    int      // 超时时间（秒）
-	ServerList string   // 服务列表
-}
-
-type RabbitMQConfig struct {
-	URL string // rabbitmq url
+type AlphaConfig struct {
+	ApiKey string
 }
 
 type LoggerConfig struct {
@@ -76,10 +63,12 @@ func init() {
 	viper.AddConfigPath("./config")
 	err := viper.ReadInConfig() //加载配置文件
 	if err != nil {
+		log.Println("viper.ReadInConfig() failed, err:", err)
 		return
 	}
 	err = viper.Unmarshal(&Configs)
 	if err != nil {
+		log.Println("viper.Unmarshal() failed, err:", err)
 		return
 	}
 }

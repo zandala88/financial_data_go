@@ -2,6 +2,7 @@ package public
 
 import (
 	"financia/config"
+	_ "financia/config"
 	"fmt"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
