@@ -34,6 +34,7 @@ var errMsg = map[int]string{
 	InternalServerError: "服务器内部错误",
 	InvalidToken:        "无效的Token",
 	ShouldBindJSONError: "参数错误",
+	ReqDataError:        "参数内容错误",
 }
 
 const (
@@ -42,4 +43,5 @@ const (
 	InternalServerError = iota + 2001
 	InvalidToken
 	ShouldBindJSONError
+	ReqDataError
 )

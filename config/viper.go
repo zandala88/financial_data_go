@@ -47,6 +47,7 @@ type RedisConfig struct {
 type AppConfig struct {
 	IP   string // 应用程序 IP 地址
 	Port string // HTTP 服务器端口
+	Salt string // 密码加盐
 }
 
 type AlphaConfig struct {
