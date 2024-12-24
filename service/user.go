@@ -10,9 +10,9 @@ import (
 )
 
 type RegisterReq struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type RegisterResp struct {
@@ -30,6 +30,13 @@ func Register(c *gin.Context) {
 		util.FailRespWithCode(c, util.ShouldBindJSONError)
 		return
 	}
+	// 邮箱格式验证
+	if !util.CheckEmailFormat(req.Email) {
+		zap.S().Error("[Register] 邮箱格式不正确")
+		util.FailRespWithCode(c, util.ReqDataError)
+		return
+	}
+
 	// 判断邮箱是否已经存在
 	userInfoRepo := models.NewUserInfoRepo(c)
 	_, err = userInfoRepo.GetUserInfoByEmail(req.Email)
@@ -70,8 +77,8 @@ func Register(c *gin.Context) {
 }
 
 type LoginReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type LoginResp struct {
