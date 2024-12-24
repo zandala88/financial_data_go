@@ -40,9 +40,14 @@ func Register(c *gin.Context) {
 	// 判断邮箱是否已经存在
 	userInfoRepo := models.NewUserInfoRepo(c)
 	_, err = userInfoRepo.GetUserInfoByEmail(req.Email)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err == nil {
 		zap.S().Error("[Register] [GetUserInfoByEmail] [err] = ", err)
 		util.FailRespWithCode(c, util.ReqDataError)
+		return
+	}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		zap.S().Error("[Register] [GetUserInfoByEmail] [err] = ", err)
+		util.FailRespWithCode(c, util.InternalServerError)
 		return
 	}
 
