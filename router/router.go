@@ -22,12 +22,12 @@ func HTTPRouter() {
 	gin.SetMode(gin.DebugMode)
 
 	corsMiddleware := cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},                                                         // 允许的来源，可以是单个或多个地址
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},                   // 允许的 HTTP 方法
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"}, // 允许的请求头
-		ExposeHeaders:    []string{"Content-Length"},                                            // 允许暴露的响应头
-		AllowCredentials: true,                                                                  // 是否允许携带身份凭证（如 Cookie）
-		MaxAge:           12 * time.Hour,                                                        // 浏览器预检请求的缓存时间
+		AllowOrigins:     []string{"*"},                                       // 允许的来源，可以是单个或多个地址
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // 允许的 HTTP 方法
+		AllowHeaders:     []string{"*"},                                       // 允许的请求头
+		ExposeHeaders:    []string{"Content-Length"},                          // 允许暴露的响应头
+		AllowCredentials: true,                                                // 是否允许携带身份凭证（如 Cookie）
+		MaxAge:           12 * time.Hour,                                      // 浏览器预检请求的缓存时间
 	})
 
 	// 将 CORS 中间件应用于所有路由
