@@ -65,7 +65,7 @@ func (s *StockRepo) FindLimitByCompany(limit int, company string) ([]*Stock, err
 func (s *StockRepo) FindByCompanyAndDate(company, start, end string) ([]*Stock, error) {
 	// 根据公司名称和日期范围查询
 	var stock []*Stock
-	err := s.db.Where("f_company = ? AND f_date >= ? AND f_date <= ?", company, start, end).Find(&stock).Error
+	err := s.db.Where("f_company = ? AND f_date >= ? AND f_date <= ?", company, start, end).Order("f_date").Find(&stock).Error
 	if err != nil {
 		zap.S().Error("FindByCompanyAndDate error: ", err)
 		return nil, err

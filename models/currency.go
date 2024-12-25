@@ -49,3 +49,13 @@ func (c *CurrencyRepo) Insert(currency []*Currency) error {
 	}
 	return nil
 }
+
+func (c *CurrencyRepo) FindByFromToAndDate(from, to, start, end string) ([]*Currency, error) {
+	// 根据货币来源、目标和日期范围查询
+	var currency []*Currency
+	err := c.db.Where("f_from = ? AND f_to = ? AND f_date >= ? AND f_date <= ?", from, to, start, end).Order("f_date").Find(&currency).Error
+	if err != nil {
+		return nil, err
+	}
+	return currency, nil
+}

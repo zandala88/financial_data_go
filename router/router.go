@@ -45,6 +45,8 @@ func HTTPRouter() {
 		auth.GET("/info", service.GetInfo)
 
 		auth.GET("/stock", service.GetStock)
+
+		auth.GET("/currency", service.GetCurrency)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
