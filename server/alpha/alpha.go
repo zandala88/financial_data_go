@@ -75,11 +75,13 @@ func AlphaDaily() {
 
 func GetAlphaStock(symbol string) (*models.Stock, error) {
 	client := resty.New()
+	zap.S().Debugf("GetAlphaStock symbol: %s", symbol)
 	get, err := client.R().SetQueryParam("function", dailyStockFuncName).
 		SetQueryParam("symbol", symbol).
 		SetQueryParam("outputsize", compact).
 		SetQueryParam("apikey", config.Configs.Alpha.ApiKey).
 		Get(url)
+	zap.S().Debugf("GetAlphaStock get: %+v", get)
 	if err != nil {
 		zap.S().Errorf("GetAlphaStock Error: %v", err)
 		return nil, err
@@ -90,8 +92,10 @@ func GetAlphaStock(symbol string) (*models.Stock, error) {
 		zap.S().Errorf("GetAlphaStock Error: %v", err)
 		return nil, err
 	}
+	zap.S().Debugf("GetAlphaStock resp: %+v", resp)
 
 	yesterdayData, ok := resp.TimeSeriesDaily[getYesterdayStr()]
+	zap.S().Debugf("GetAlphaStock yesterdayData: %+v", yesterdayData)
 	if !ok {
 		zap.S().Debug("No data for yesterday")
 		return nil, nil
@@ -117,17 +121,22 @@ func GetAlphaCurrency(fromSymbol, toSymbol string) (*models.Currency, error) {
 		SetQueryParam("outputsize", compact).
 		SetQueryParam("apikey", config.Configs.Alpha.ApiKey).
 		Get(url)
+	zap.S().Debugf("GetAlphaCurrency get: %+v", get)
 	if err != nil {
 		zap.S().Errorf("GetAlphaCurrency Error: %v", err)
 		return nil, err
 	}
+
 	resp := &CurrencyResp{}
 	err = json.Unmarshal(get.Body(), resp)
+	zap.S().Debugf("GetAlphaCurrency resp: %+v", resp)
 	if err != nil {
 		zap.S().Errorf("GetAlphaCurrency Error: %v", err)
 		return nil, err
 	}
+
 	yesterdayData, ok := resp.TimeSeriesDaily[getYesterdayStr()]
+	zap.S().Debugf("GetAlphaCurrency yesterdayData: %+v", yesterdayData)
 	if !ok {
 		zap.S().Debug("No data for yesterday")
 		return nil, nil
