@@ -9,7 +9,7 @@ func InsertDailyDate() {
 	c := cron.New()
 
 	// 添加每天早上5点执行的任务
-	c.AddFunc("0 5 * * *", func() {
+	c.AddFunc("0 11 * * *", func() {
 		alpha.AlphaDaily()
 	})
 
