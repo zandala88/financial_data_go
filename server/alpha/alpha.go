@@ -81,7 +81,6 @@ func GetAlphaStock(symbol string) (*models.Stock, error) {
 		SetQueryParam("outputsize", compact).
 		SetQueryParam("apikey", config.Configs.Alpha.ApiKey).
 		Get(url)
-	zap.S().Debugf("GetAlphaStock get: %+v", get)
 	if err != nil {
 		zap.S().Errorf("GetAlphaStock Error: %v", err)
 		return nil, err
@@ -92,7 +91,6 @@ func GetAlphaStock(symbol string) (*models.Stock, error) {
 		zap.S().Errorf("GetAlphaStock Error: %v", err)
 		return nil, err
 	}
-	zap.S().Debugf("GetAlphaStock resp: %+v", resp)
 
 	yesterdayData, ok := resp.TimeSeriesDaily[getYesterdayStr()]
 	zap.S().Debugf("GetAlphaStock yesterdayData: %+v", yesterdayData)
@@ -121,7 +119,6 @@ func GetAlphaCurrency(fromSymbol, toSymbol string) (*models.Currency, error) {
 		SetQueryParam("outputsize", compact).
 		SetQueryParam("apikey", config.Configs.Alpha.ApiKey).
 		Get(url)
-	zap.S().Debugf("GetAlphaCurrency get: %+v", get)
 	if err != nil {
 		zap.S().Errorf("GetAlphaCurrency Error: %v", err)
 		return nil, err
@@ -129,7 +126,6 @@ func GetAlphaCurrency(fromSymbol, toSymbol string) (*models.Currency, error) {
 
 	resp := &CurrencyResp{}
 	err = json.Unmarshal(get.Body(), resp)
-	zap.S().Debugf("GetAlphaCurrency resp: %+v", resp)
 	if err != nil {
 		zap.S().Errorf("GetAlphaCurrency Error: %v", err)
 		return nil, err
