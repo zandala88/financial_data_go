@@ -72,3 +72,14 @@ func (s *StockRepo) FindByCompanyAndDate(company, start, end string) ([]*Stock, 
 	}
 	return stock, nil
 }
+
+func (s *StockRepo) DateOffset30(company string) ([]*Stock, error) {
+	var date []*Stock
+	err := s.db.Model(&Stock{}).Where("f_company = ?", company).
+		Select("f_date").Order("f_date").Limit(1000000).Offset(30).Find(&date).Error
+	if err != nil {
+		zap.S().Error("DateLimit30 error: ", err)
+		return nil, err
+	}
+	return date, nil
+}

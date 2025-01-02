@@ -23,6 +23,7 @@ type GetStockResp struct {
 	Volume int64              `json:"volume"`
 }
 
+// todo 限制查看数据自选日期的范围，
 func GetStock(c *gin.Context) {
 	// 获取 URL 参数
 	var query GetStockReq
@@ -40,6 +41,7 @@ func GetStock(c *gin.Context) {
 		zap.S().Error("[GetStock] 查询失败", err)
 		return
 	}
+	// todo len(stockList) > 0 判断
 	last := stockList[len(stockList)-1]
 	resp := &GetStockResp{
 		List:   make(map[string]float64),

@@ -44,9 +44,12 @@ func HTTPRouter() {
 	{
 		auth.GET("/info", service.GetInfo)
 
+		// 实际数据
 		auth.GET("/stock", service.GetStock)
 
 		auth.GET("/currency", service.GetCurrency)
+
+		// todo 预测数据与实际数据同时展示
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
