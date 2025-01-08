@@ -61,7 +61,7 @@ func (c *CurrencyRepo) FindByFromToAndDate(symbol, start, end string) ([]*Curren
 }
 
 type CurrencyDiffAndRatioResult struct {
-	Symbol string  `gorm:"column:f_symbol"`
+	Symbol string  `gorm:"column:f_name"`
 	Diff   float64 `gorm:"column:close_diff"`
 	Ratio  float64 `gorm:"column:close_ratio"`
 }
@@ -77,20 +77,27 @@ WITH RankedStockData AS (
         ROW_NUMBER() OVER (PARTITION BY f_symbol ORDER BY f_date DESC) AS row_num
     FROM t_currency_data
 ),
-     FilteredData AS (
-         SELECT
-             f_symbol,
-             MAX(CASE WHEN row_num = 1 THEN f_close END) AS close_latest,
-             MAX(CASE WHEN row_num = 2 THEN f_close END) AS close_previous
-         FROM RankedStockData
-         WHERE row_num <= 2
-         GROUP BY f_symbol
-     )
+FilteredData AS (
+    SELECT
+        f_symbol,
+        MAX(CASE WHEN row_num = 1 THEN f_close END) AS close_latest,
+        MAX(CASE WHEN row_num = 2 THEN f_close END) AS close_previous
+    FROM RankedStockData
+    WHERE row_num <= 2
+    GROUP BY f_symbol
+),
+CalculatedData AS (
+    SELECT
+        f_symbol, close_latest - close_previous AS close_diff, (close_latest - close_previous) / close_previous AS close_ratio
+    FROM FilteredData
+)
 SELECT
-    f_symbol,
-    close_latest - close_previous  AS close_diff,
-    (close_latest - close_previous) / close_previous AS close_ratio
-FROM FilteredData;
+    ai.f_name,
+    cd.close_diff,
+    cd.close_ratio
+FROM CalculatedData cd
+         JOIN t_alpha_info ai
+              ON cd.f_symbol = ai.f_symbol;
 `
 	err := c.db.Raw(sql).Scan(&result).Error
 	if err != nil {
