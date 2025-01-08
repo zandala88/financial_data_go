@@ -41,9 +41,11 @@ func HTTPRouter() {
 
 	// 股票
 	r.GET("/stock", service.GetStock)
+	r.GET("/stock/all", service.GetStockAll)
 
 	// 外汇
 	r.GET("/currency", service.GetCurrency)
+	r.GET("/currency/all", service.GetCurrencyAll)
 
 	// 数据首页
 	r.GET("/data/index", service.GetDataIndex)

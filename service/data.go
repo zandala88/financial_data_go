@@ -17,9 +17,6 @@ type GetStockReq struct {
 type GetStockResp struct {
 	Real          map[string]float64 `json:"real"`
 	Pred          map[string]float64 `json:"pred"`
-	OpenList      map[string]float64 `json:"openList"`
-	HighList      map[string]float64 `json:"highList"`
-	LowList       map[string]float64 `json:"lowList"`
 	TomorrowClose float64            `json:"tomorrowClose"`
 	TotalNum      int                `json:"totalNum"`
 	TrueNum       int                `json:"trueNum"`
@@ -56,16 +53,13 @@ func GetStock(c *gin.Context) {
 
 	last := stockList[len(stockList)-1]
 	resp := &GetStockResp{
-		Real:     make(map[string]float64),
-		Pred:     make(map[string]float64),
-		OpenList: make(map[string]float64),
-		HighList: make(map[string]float64),
-		LowList:  make(map[string]float64),
-		Open:     last.Open,
-		High:     last.High,
-		Low:      last.Low,
-		Close:    last.Close,
-		Volume:   last.Volume,
+		Real:   make(map[string]float64),
+		Pred:   make(map[string]float64),
+		Open:   last.Open,
+		High:   last.High,
+		Low:    last.Low,
+		Close:  last.Close,
+		Volume: last.Volume,
 	}
 
 	// 查询预测值
@@ -85,9 +79,6 @@ func GetStock(c *gin.Context) {
 	// slice to map
 	for _, stock := range stockList {
 		resp.Real[stock.Date.Format(time.DateOnly)] = stock.Close
-		resp.OpenList[stock.Date.Format(time.DateOnly)] = stock.Open
-		resp.HighList[stock.Date.Format(time.DateOnly)] = stock.High
-		resp.LowList[stock.Date.Format(time.DateOnly)] = stock.Low
 	}
 	for _, stockForecast := range stockForecastList {
 		resp.Pred[stockForecast.Date.Format(time.DateOnly)] = stockForecast.Value
@@ -114,6 +105,59 @@ func GetStock(c *gin.Context) {
 	util.SuccessResp(c, resp)
 }
 
+type GetStockAllReq struct {
+	Name  string `form:"name" binding:"required"`       // 必填字段
+	Start string `form:"start" binding:"required,date"` // 必填字段，日期格式验证
+	End   string `form:"end" binding:"required,date"`   // 必填字段，日期格式验证
+}
+
+type GetStockAllResp struct {
+	Close map[string]float64 `json:"close"`
+	Open  map[string]float64 `json:"open"`
+	High  map[string]float64 `json:"high"`
+	Low   map[string]float64 `json:"low"`
+}
+
+func GetStockAll(c *gin.Context) {
+	// 获取 URL 参数
+	var query GetStockAllReq
+	err := c.ShouldBindQuery(&query)
+	if err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[GetStockAll] 参数错误", err)
+		return
+	}
+
+	stockRepo := models.NewStockRepo(c)
+	stockList, err := stockRepo.FindByCompanyAndDate(query.Name, query.Start, query.End)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[GetStockAll] stockRepo.FindByCompanyAndDate err = ", err)
+		return
+	}
+	if len(stockList) == 0 {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[GetStockAll] len(stockList) == 0 | err = ", err)
+		return
+	}
+
+	resp := &GetStockAllResp{
+		Close: make(map[string]float64, len(stockList)),
+		Open:  make(map[string]float64, len(stockList)),
+		High:  make(map[string]float64, len(stockList)),
+		Low:   make(map[string]float64, len(stockList)),
+	}
+
+	for _, stock := range stockList {
+		resp.Close[stock.Date.Format(time.DateOnly)] = stock.Close
+		resp.Open[stock.Date.Format(time.DateOnly)] = stock.Open
+		resp.High[stock.Date.Format(time.DateOnly)] = stock.High
+		resp.Low[stock.Date.Format(time.DateOnly)] = stock.Low
+	}
+
+	util.SuccessResp(c, resp)
+}
+
 type GetCurrencyReq struct {
 	Name  string `form:"name" binding:"required"`       // 必填字段
 	Start string `form:"start" binding:"required,date"` // 必填字段，日期格式验证
@@ -123,9 +167,6 @@ type GetCurrencyReq struct {
 type GetCurrencyResp struct {
 	Real          map[string]float64 `json:"real"`
 	Pred          map[string]float64 `json:"pred"`
-	OpenList      map[string]float64 `json:"openList"`
-	HighList      map[string]float64 `json:"highList"`
-	LowList       map[string]float64 `json:"lowList"`
 	TomorrowClose float64            `json:"tomorrowClose"`
 	TotalNum      int                `json:"totalNum"`
 	TrueNum       int                `json:"trueNum"`
@@ -186,9 +227,6 @@ func GetCurrency(c *gin.Context) {
 	// slice to map
 	for _, currency := range currencyList {
 		resp.Real[currency.Date.Format(time.DateOnly)] = currency.Close
-		resp.OpenList[currency.Date.Format(time.DateOnly)] = currency.Open
-		resp.HighList[currency.Date.Format(time.DateOnly)] = currency.High
-		resp.LowList[currency.Date.Format(time.DateOnly)] = currency.Low
 	}
 	for _, currencyForecast := range currencyForecastList {
 		resp.Pred[currencyForecast.Date.Format(time.DateOnly)] = currencyForecast.Value
@@ -211,6 +249,59 @@ func GetCurrency(c *gin.Context) {
 	}
 	resp.TotalNum = inPrice.TotalCount
 	resp.TrueNum = inPrice.Times
+
+	util.SuccessResp(c, resp)
+}
+
+type GetCurrencyAllReq struct {
+	Symbol string `form:"symbol" binding:"required"`     // 必填字段
+	Start  string `form:"start" binding:"required,date"` // 必填字段，日期格式验证
+	End    string `form:"end" binding:"required,date"`   // 必填字段，日期格式验证
+}
+
+type GetCurrencyAllResp struct {
+	Close map[string]float64 `json:"close"`
+	Open  map[string]float64 `json:"open"`
+	High  map[string]float64 `json:"high"`
+	Low   map[string]float64 `json:"low"`
+}
+
+func GetCurrencyAll(c *gin.Context) {
+	// 获取 URL 参数
+	var query GetCurrencyAllReq
+	err := c.ShouldBindQuery(&query)
+	if err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[GetCurrencyAll] 参数错误", err)
+		return
+	}
+
+	currencyRepo := models.NewCurrencyRepo(c)
+	currencyList, err := currencyRepo.FindByFromToAndDate(query.Symbol, query.Start, query.End)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[GetCurrencyAll] currencyRepo.FindByFromToAndDate err = ", err)
+		return
+	}
+	if len(currencyList) == 0 {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[GetCurrencyAll] len(currencyList) == 0 | err = ", err)
+		return
+	}
+
+	resp := &GetCurrencyAllResp{
+		Close: make(map[string]float64, len(currencyList)),
+		Open:  make(map[string]float64, len(currencyList)),
+		High:  make(map[string]float64, len(currencyList)),
+		Low:   make(map[string]float64, len(currencyList)),
+	}
+
+	for _, currency := range currencyList {
+		resp.Close[currency.Date.Format(time.DateOnly)] = currency.Close
+		resp.Open[currency.Date.Format(time.DateOnly)] = currency.Open
+		resp.High[currency.Date.Format(time.DateOnly)] = currency.High
+		resp.Low[currency.Date.Format(time.DateOnly)] = currency.Low
+	}
 
 	util.SuccessResp(c, resp)
 }
