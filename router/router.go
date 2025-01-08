@@ -3,7 +3,6 @@ package router
 import (
 	"errors"
 	"financia/config"
-	"financia/public/middlewares"
 	"financia/public/vaildator"
 	"financia/service"
 	"fmt"
@@ -37,20 +36,14 @@ func HTTPRouter() {
 		v.RegisterValidation("date", vaildator.DateValidator)
 	}
 
-	r.POST("/login", service.Login)
-	r.POST("/register", service.Register)
+	r.GET("/info", service.GetInfo)
 
-	auth := r.Group("", middlewares.AuthCheck())
-	{
-		auth.GET("/info", service.GetInfo)
+	// 实际数据
+	r.GET("/stock", service.GetStock)
 
-		// 实际数据
-		auth.GET("/stock", service.GetStock)
+	r.GET("/currency", service.GetCurrency)
 
-		auth.GET("/currency", service.GetCurrency)
-
-		// todo 预测数据与实际数据同时展示
-	}
+	// todo 预测数据与实际数据同时展示
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
 	if err := r.Run(httpAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {

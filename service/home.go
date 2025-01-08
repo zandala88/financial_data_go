@@ -12,9 +12,8 @@ type GetInfoReq struct {
 }
 
 type GetInfoRespSimple struct {
-	Name    string `json:"name"`
-	Symbol1 string `json:"symbol1"`
-	Symbol2 string `json:"symbol2"`
+	Name   string `json:"name"`
+	Symbol string `json:"symbol"`
 }
 
 type GetInfoResp struct {
@@ -42,9 +41,8 @@ func GetInfo(c *gin.Context) {
 	}
 	for _, info := range infoList {
 		resp.List = append(resp.List, &GetInfoRespSimple{
-			Name:    info.Name,
-			Symbol1: info.Symbol,
-			Symbol2: info.SymbolTo,
+			Name:   info.Name,
+			Symbol: info.Symbol,
 		})
 	}
 

@@ -20,6 +20,7 @@ const (
 	dailyCurrencyFunc  = "FX_DAILY"
 	dailyCryptoFunc    = "DIGITAL_CURRENCY_DAILY"
 
+	cny     = "CNY"
 	market  = "EUR"
 	full    = "full"
 	compact = "compact"
@@ -56,7 +57,7 @@ func AlphaDaily() {
 	}
 	currencyList := make([]*models.Currency, 0, len(alphaCurrencyInfos))
 	for _, alphaInfo := range alphaCurrencyInfos {
-		alpha, err := GetAlphaCurrency(alphaInfo.Symbol, alphaInfo.SymbolTo)
+		alpha, err := GetAlphaCurrency(alphaInfo.Symbol)
 		if err != nil {
 			zap.S().Errorf("GetAlphaCurrency Error: %v", err)
 			continue
@@ -108,11 +109,11 @@ func GetAlphaStock(symbol string) (*models.Stock, error) {
 	return stock, nil
 }
 
-func GetAlphaCurrency(fromSymbol, toSymbol string) (*models.Currency, error) {
+func GetAlphaCurrency(symbol string) (*models.Currency, error) {
 	client := resty.New()
 	get, err := client.R().SetQueryParam("function", dailyCurrencyFunc).
-		SetQueryParam("from_symbol", fromSymbol).
-		SetQueryParam("to_symbol", toSymbol).
+		SetQueryParam("from_symbol", cny).
+		SetQueryParam("to_symbol", symbol).
 		SetQueryParam("outputsize", compact).
 		SetQueryParam("apikey", config.Configs.Alpha.ApiKey).
 		Get(url)
@@ -135,13 +136,12 @@ func GetAlphaCurrency(fromSymbol, toSymbol string) (*models.Currency, error) {
 		return nil, nil
 	}
 	currency := &models.Currency{
-		From:  fromSymbol,
-		To:    toSymbol,
-		Date:  time.Now().AddDate(0, 0, -1),
-		Open:  cast.ToFloat64(yesterdayData.Open),
-		High:  cast.ToFloat64(yesterdayData.High),
-		Low:   cast.ToFloat64(yesterdayData.Low),
-		Close: cast.ToFloat64(yesterdayData.Close),
+		Symbol: symbol,
+		Date:   time.Now().AddDate(0, 0, -1),
+		Open:   cast.ToFloat64(yesterdayData.Open),
+		High:   cast.ToFloat64(yesterdayData.High),
+		Low:    cast.ToFloat64(yesterdayData.Low),
+		Close:  cast.ToFloat64(yesterdayData.Close),
 	}
 	return currency, nil
 }
@@ -218,13 +218,12 @@ func InitInsertCurrencyData(fromSymbol, toSymbol string) {
 	for dateStr, data := range resp.TimeSeriesDaily {
 		date, _ := time.Parse(time.DateOnly, dateStr)
 		stock := &models.Currency{
-			From:  fromSymbol,
-			To:    toSymbol,
-			Date:  date,
-			Open:  cast.ToFloat64(data.Open),
-			High:  cast.ToFloat64(data.High),
-			Low:   cast.ToFloat64(data.Low),
-			Close: cast.ToFloat64(data.Close),
+			Symbol: toSymbol,
+			Date:   date,
+			Open:   cast.ToFloat64(data.Open),
+			High:   cast.ToFloat64(data.High),
+			Low:    cast.ToFloat64(data.Low),
+			Close:  cast.ToFloat64(data.Close),
 		}
 		currencyList = append(currencyList, stock)
 	}

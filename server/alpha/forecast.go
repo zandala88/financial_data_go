@@ -24,14 +24,12 @@ func InsertStockForecast(company string) {
 		data = append(data, &models.StockForecast{
 			Company: company,
 			Date:    offset30[i].Date,
-			Type:    1,
 			Value:   a[i],
 		})
 	}
 	data = append(data, &models.StockForecast{
 		Company: company,
 		Date:    getNextWeekday(),
-		Type:    1,
 		Value:   a[len(a)-1],
 	})
 
