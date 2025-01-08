@@ -36,14 +36,17 @@ func HTTPRouter() {
 		v.RegisterValidation("date", vaildator.DateValidator)
 	}
 
+	// 选项列表
 	r.GET("/info", service.GetInfo)
 
-	// 实际数据
+	// 股票
 	r.GET("/stock", service.GetStock)
 
+	// 外汇
 	r.GET("/currency", service.GetCurrency)
 
-	// todo 预测数据与实际数据同时展示
+	// 数据首页
+	r.GET("/data/index", service.GetDataIndex)
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
 	if err := r.Run(httpAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {

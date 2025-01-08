@@ -83,3 +83,42 @@ func (s *StockRepo) DateOffset30(company string) ([]*Stock, error) {
 	}
 	return date, nil
 }
+
+type StockDiffAndRatioResult struct {
+	Company string  `gorm:"column:f_company"`
+	Diff    float64 `gorm:"column:close_diff"`
+	Ratio   float64 `gorm:"column:close_ratio"`
+}
+
+func (s *StockRepo) FindDiffAndRatio() ([]*StockDiffAndRatioResult, error) {
+	var result []*StockDiffAndRatioResult
+	sql := `
+WITH RankedStockData AS (
+    SELECT
+        f_company,
+        f_date,
+        f_close,
+        ROW_NUMBER() OVER (PARTITION BY f_company ORDER BY f_date DESC) AS row_num
+    FROM t_stock_data
+),
+     FilteredData AS (
+         SELECT
+             f_company,
+             MAX(CASE WHEN row_num = 1 THEN f_close END) AS close_latest,
+             MAX(CASE WHEN row_num = 2 THEN f_close END) AS close_previous
+         FROM RankedStockData
+         WHERE row_num <= 2
+         GROUP BY f_company
+     )
+SELECT
+    f_company,
+    close_latest - close_previous AS close_diff,
+    (close_latest - close_previous) / close_previous AS close_ratio
+FROM FilteredData;`
+	err := s.db.Raw(sql).Scan(&result).Error
+	if err != nil {
+		zap.S().Error("FindDiffAndRatio error: ", err)
+		return nil, err
+	}
+	return result, nil
+}
