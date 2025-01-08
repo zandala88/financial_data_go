@@ -17,6 +17,9 @@ type GetStockReq struct {
 type GetStockResp struct {
 	Real          map[string]float64 `json:"real"`
 	Pred          map[string]float64 `json:"pred"`
+	OpenList      map[string]float64 `json:"openList"`
+	HighList      map[string]float64 `json:"highList"`
+	LowList       map[string]float64 `json:"lowList"`
 	TomorrowClose float64            `json:"tomorrowClose"`
 	TotalNum      int                `json:"totalNum"`
 	TrueNum       int                `json:"trueNum"`
@@ -53,13 +56,16 @@ func GetStock(c *gin.Context) {
 
 	last := stockList[len(stockList)-1]
 	resp := &GetStockResp{
-		Real:   make(map[string]float64),
-		Pred:   make(map[string]float64),
-		Open:   last.Open,
-		High:   last.High,
-		Low:    last.Low,
-		Close:  last.Close,
-		Volume: last.Volume,
+		Real:     make(map[string]float64),
+		Pred:     make(map[string]float64),
+		OpenList: make(map[string]float64),
+		HighList: make(map[string]float64),
+		LowList:  make(map[string]float64),
+		Open:     last.Open,
+		High:     last.High,
+		Low:      last.Low,
+		Close:    last.Close,
+		Volume:   last.Volume,
 	}
 
 	// 查询预测值
@@ -79,6 +85,9 @@ func GetStock(c *gin.Context) {
 	// slice to map
 	for _, stock := range stockList {
 		resp.Real[stock.Date.Format(time.DateOnly)] = stock.Close
+		resp.OpenList[stock.Date.Format(time.DateOnly)] = stock.Open
+		resp.HighList[stock.Date.Format(time.DateOnly)] = stock.High
+		resp.LowList[stock.Date.Format(time.DateOnly)] = stock.Low
 	}
 	for _, stockForecast := range stockForecastList {
 		resp.Pred[stockForecast.Date.Format(time.DateOnly)] = stockForecast.Value
@@ -114,6 +123,9 @@ type GetCurrencyReq struct {
 type GetCurrencyResp struct {
 	Real          map[string]float64 `json:"real"`
 	Pred          map[string]float64 `json:"pred"`
+	OpenList      map[string]float64 `json:"openList"`
+	HighList      map[string]float64 `json:"highList"`
+	LowList       map[string]float64 `json:"lowList"`
 	TomorrowClose float64            `json:"tomorrowClose"`
 	TotalNum      int                `json:"totalNum"`
 	TrueNum       int                `json:"trueNum"`
@@ -174,6 +186,9 @@ func GetCurrency(c *gin.Context) {
 	// slice to map
 	for _, currency := range currencyList {
 		resp.Real[currency.Date.Format(time.DateOnly)] = currency.Close
+		resp.OpenList[currency.Date.Format(time.DateOnly)] = currency.Open
+		resp.HighList[currency.Date.Format(time.DateOnly)] = currency.High
+		resp.LowList[currency.Date.Format(time.DateOnly)] = currency.Low
 	}
 	for _, currencyForecast := range currencyForecastList {
 		resp.Pred[currencyForecast.Date.Format(time.DateOnly)] = currencyForecast.Value
