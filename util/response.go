@@ -38,10 +38,11 @@ var errMsg = map[int]string{
 }
 
 const (
-	Ok = 200
+	Ok           = 200
+	InvalidToken = 403
 
 	InternalServerError = iota + 2001
-	InvalidToken
+
 	ShouldBindJSONError
 	ReqDataError
 )

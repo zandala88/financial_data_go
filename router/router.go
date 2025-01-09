@@ -3,6 +3,7 @@ package router
 import (
 	"errors"
 	"financia/config"
+	"financia/public/middlewares"
 	"financia/public/vaildator"
 	"financia/service"
 	"fmt"
@@ -36,19 +37,27 @@ func HTTPRouter() {
 		v.RegisterValidation("date", vaildator.DateValidator)
 	}
 
-	// 选项列表
-	r.GET("/info", service.GetInfo)
+	r.POST("/login", service.Login)
+	r.POST("/register", service.Register)
 
-	// 股票
-	r.GET("/stock", service.GetStock)
-	r.GET("/stock/all", service.GetStockAll)
+	auth := r.Group("", middlewares.AuthCheck())
+	{
+		auth.GET("/check", service.Check)
+		// 选项列表
+		auth.GET("/info", service.GetInfo)
 
-	// 外汇
-	r.GET("/currency", service.GetCurrency)
-	r.GET("/currency/all", service.GetCurrencyAll)
+		auth.POST("/feedback", service.Feedback)
+		// 股票
+		auth.GET("/stock", service.GetStock)
+		auth.GET("/stock/all", service.GetStockAll)
 
-	// 数据首页
-	r.GET("/data/index", service.GetDataIndex)
+		// 外汇
+		auth.GET("/currency", service.GetCurrency)
+		auth.GET("/currency/all", service.GetCurrencyAll)
+
+		// 数据首页
+		auth.GET("/data/index", service.GetDataIndex)
+	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
 	if err := r.Run(httpAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
