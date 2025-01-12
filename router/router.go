@@ -6,6 +6,7 @@ import (
 	"financia/public/middleware"
 	"financia/public/vaildator"
 	"financia/service/common"
+	"financia/service/company"
 	"financia/service/user"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -49,6 +50,10 @@ func HTTPRouter() {
 	auth := v1.Use(middleware.AuthCheck())
 	{
 		auth.GET("/tab/list", common.GetTabList)
+
+		auth.GET("/company/query", company.QueryCompany)
+		auth.GET("/company/list", company.ListCompany)
+		auth.GET("/company", company.DetailCompany)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

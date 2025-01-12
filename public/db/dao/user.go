@@ -9,7 +9,7 @@ import (
 
 // CreateUser 创建用户
 func CreateUser(ctx context.Context, email, username, password string) error {
-	return connector.GetDB().Create(&model.UserInfo{
+	return connector.GetDB().WithContext(ctx).Create(&model.UserInfo{
 		Email:    email,
 		Username: username,
 		Password: public.GenerateMD5Hash(password),
@@ -17,7 +17,7 @@ func CreateUser(ctx context.Context, email, username, password string) error {
 }
 
 func GetUserId(ctx context.Context, email string) int64 {
-	var user model.UserInfo
-	connector.GetDB().Where("f_email = ?", email).First(&user)
+	var user *model.UserInfo
+	connector.GetDB().WithContext(ctx).Where("f_email = ?", email).First(&user)
 	return user.Id
 }
