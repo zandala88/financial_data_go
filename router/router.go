@@ -3,7 +3,9 @@ package router
 import (
 	"errors"
 	"financia/config"
+	"financia/public/middleware"
 	"financia/public/vaildator"
+	"financia/service/common"
 	"financia/service/user"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -44,10 +46,10 @@ func HTTPRouter() {
 		v1.GET("/code", user.Code)
 	}
 
-	//auth := v1.Use(middleware.AuthCheck())
-	//{
-	//
-	//}
+	auth := v1.Use(middleware.AuthCheck())
+	{
+		auth.GET("/tab/list", common.GetTabList)
+	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
 	if err := r.Run(httpAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
