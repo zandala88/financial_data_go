@@ -44,5 +44,5 @@ func Code(c *gin.Context) {
 		return
 	}
 
-	util.SuccessResp(c, GetCodeResp{Code: code})
+	util.SuccessResp(c, nil)
 }
