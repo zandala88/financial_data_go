@@ -1,15 +1,25 @@
 package public
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"math/rand"
 	"time"
 )
 
-func RandomWithinPercentage(value float64, percentage float64) float64 {
-	// 使用随机数源创建随机数生成器
-	source := rand.New(rand.NewSource(time.Now().UnixNano()))
-	// 计算波动范围
-	offset := value * percentage / 100
-	// 生成波动范围内的随机浮点数
-	return value + (source.Float64()*2*offset - offset)
+const charset = "0123456789"
+
+func GenerateVerificationCode(length int) string {
+	rand.NewSource(time.Now().UnixNano())
+	code := make([]byte, length)
+	for i := range code {
+		code[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(code)
+}
+
+func GenerateMD5Hash(text string) string {
+	hash := md5.New()
+	hash.Write([]byte(text))
+	return hex.EncodeToString(hash.Sum(nil))
 }

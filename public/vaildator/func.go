@@ -12,3 +12,11 @@ func DateValidator(fl validator.FieldLevel) bool {
 	matched, _ := regexp.MatchString(regex, date)
 	return matched
 }
+
+func EmailValidator(fl validator.FieldLevel) bool {
+	email := fl.Field().String()
+	// 正则表达式验证邮箱格式
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	matched, _ := regexp.MatchString(regex, email)
+	return matched
+}

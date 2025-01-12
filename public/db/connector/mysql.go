@@ -1,8 +1,7 @@
-package public
+package connector
 
 import (
 	"financia/config"
-	_ "financia/config"
 	"fmt"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -11,7 +10,7 @@ import (
 	"time"
 )
 
-var DB *gorm.DB
+var db *gorm.DB
 
 func init() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=%s&loc=%s",
@@ -21,7 +20,7 @@ func init() {
 
 	zap.S().Debug("[init] [mysql] [dsn] = ", dsn)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	mysql, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		PrepareStmt:            true,
 		SkipDefaultTransaction: true,
 		QueryFields:            true, //打印sql
@@ -36,5 +35,9 @@ func init() {
 		panic(err)
 	}
 
-	DB = db
+	db = mysql
+}
+
+func GetDB() *gorm.DB {
+	return db
 }

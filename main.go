@@ -1,11 +1,8 @@
 package main
 
-import (
-	"financia/router"
-	"financia/server"
-)
+import "financia/router"
 
 func main() {
-	go server.InsertDailyDate()
 	router.HTTPRouter()
+	//server.SendEmail("lkx13662254197@163.com", "test", "test")
 }

@@ -3,9 +3,8 @@ package router
 import (
 	"errors"
 	"financia/config"
-	"financia/public/middlewares"
 	"financia/public/vaildator"
-	"financia/service"
+	"financia/service/user"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,29 +34,20 @@ func HTTPRouter() {
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("date", vaildator.DateValidator)
+		v.RegisterValidation("email", vaildator.EmailValidator)
 	}
 
-	r.POST("/login", service.Login)
-	r.POST("/register", service.Register)
-
-	auth := r.Group("", middlewares.AuthCheck())
+	v1 := r.Group("/api/v1")
 	{
-		auth.GET("/check", service.Check)
-		// 选项列表
-		auth.GET("/info", service.GetInfo)
-
-		auth.POST("/feedback", service.Feedback)
-		// 股票
-		auth.GET("/stock", service.GetStock)
-		auth.GET("/stock/all", service.GetStockAll)
-
-		// 外汇
-		auth.GET("/currency", service.GetCurrency)
-		auth.GET("/currency/all", service.GetCurrencyAll)
-
-		// 数据首页
-		auth.GET("/data/index", service.GetDataIndex)
+		v1.POST("/login", user.Login)
+		v1.POST("/register", user.Register)
+		v1.GET("/code", user.Code)
 	}
+
+	//auth := v1.Use(middleware.AuthCheck())
+	//{
+	//
+	//}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
 	if err := r.Run(httpAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {

@@ -14,6 +14,7 @@ type Config struct {
 	App    AppConfig
 	Alpha  AlphaConfig
 	Logger LoggerConfig
+	Email  EmailConfig
 }
 
 type MySQLConfig struct {
@@ -56,6 +57,13 @@ type AlphaConfig struct {
 
 type LoggerConfig struct {
 	Type string
+}
+
+type EmailConfig struct {
+	Server   string
+	Port     int
+	User     string
+	Password string
 }
 
 func init() {

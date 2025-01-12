@@ -35,6 +35,7 @@ var errMsg = map[int]string{
 	InvalidToken:        "无效的Token",
 	ShouldBindJSONError: "参数错误",
 	ReqDataError:        "参数内容错误",
+	CodeLimitError:      "验证码发送过于频繁",
 }
 
 const (
@@ -45,4 +46,5 @@ const (
 
 	ShouldBindJSONError
 	ReqDataError
+	CodeLimitError
 )
