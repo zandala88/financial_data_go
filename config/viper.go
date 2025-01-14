@@ -8,13 +8,14 @@ import (
 var Configs Config
 
 type Config struct {
-	MySQL  MySQLConfig
-	Redis  RedisConfig
-	Auth   AuthConfig
-	App    AppConfig
-	Alpha  AlphaConfig
-	Logger LoggerConfig
-	Email  EmailConfig
+	MySQL   MySQLConfig
+	Redis   RedisConfig
+	Auth    AuthConfig
+	App     AppConfig
+	Alpha   AlphaConfig
+	Logger  LoggerConfig
+	Email   EmailConfig
+	TuShare TuShareConfig
 }
 
 type MySQLConfig struct {
@@ -64,6 +65,10 @@ type EmailConfig struct {
 	Port     int
 	User     string
 	Password string
+}
+
+type TuShareConfig struct {
+	Token string
 }
 
 func init() {

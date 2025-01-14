@@ -11,7 +11,7 @@ type TabListResp struct {
 
 func GetTabList(c *gin.Context) {
 	resp := TabListResp{
-		List: []string{"上市公司", "股票市场", "公募基金", "期货数据"},
+		List: []string{"上市公司", "股票市场", "公募基金", "期货数据", "新闻快讯"},
 	}
 	util.SuccessResp(c, resp)
 }
