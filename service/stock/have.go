@@ -41,12 +41,11 @@ func HaveStock(c *gin.Context) {
 	}
 
 	if !have {
-		tushare.DailyAll(c, info.TsCode)
-		have = true
+		have = tushare.DailyStockAll(c, info.TsCode)
 	}
 
 	util.SuccessResp(c, &HaveStockResp{
-		Have: true,
+		Have: have,
 	})
 	return
 }

@@ -4,9 +4,11 @@ import (
 	"context"
 	"financia/public/db/connector"
 	"financia/public/db/model"
+	"fmt"
+	"gorm.io/gorm"
 )
 
-func DistinctFields(ctx context.Context) (map[string][]string, error) {
+func DistinctStockFields(ctx context.Context) (map[string][]string, error) {
 	var isHs []string
 	var exchange []string
 	var market []string
@@ -36,6 +38,42 @@ func DistinctFields(ctx context.Context) (map[string][]string, error) {
 		"is_hs":    isHs,
 		"exchange": exchange,
 		"market":   market,
+	}
+
+	return fields, nil
+}
+
+func CountStockFields(ctx context.Context) (map[string]map[string]int, error) {
+	queryByField := func(db *gorm.DB, field string) map[string]int {
+		type StockInfo struct {
+			Value string `gorm:"column:value"` // 动态字段的通用名称
+			Count int    `gorm:"column:cnt"`
+		}
+
+		var results []StockInfo
+
+		db.Model(&model.StockInfo{}).
+			Select(fmt.Sprintf("%s AS value, COUNT(1) as cnt", field)). // 使用 AS 设置别名
+			Group(field).
+			Scan(&results)
+
+		mp := make(map[string]int)
+
+		for _, result := range results {
+			mp[result.Value] = result.Count
+		}
+		return mp
+	}
+
+	db := connector.GetDB()
+	mp1 := queryByField(db, "f_is_hs")
+	mp2 := queryByField(db, "f_exchange")
+	mp3 := queryByField(db, "f_market")
+
+	fields := map[string]map[string]int{
+		"is_hs":    mp1,
+		"exchange": mp2,
+		"market":   mp3,
 	}
 
 	return fields, nil

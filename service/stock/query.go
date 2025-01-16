@@ -14,10 +14,10 @@ type QueryStockResp struct {
 }
 
 func QueryStock(c *gin.Context) {
-	fields, err := dao.DistinctFields(c)
+	fields, err := dao.DistinctStockFields(c)
 	if err != nil {
 		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Errorf("DistinctFields error: %s", err.Error())
+		zap.S().Errorf("DistinctStockFields error: %s", err.Error())
 		return
 	}
 

@@ -3,11 +3,13 @@ package router
 import (
 	"errors"
 	"financia/config"
-	"financia/public/middleware"
 	"financia/public/vaildator"
+	"financia/service"
 	"financia/service/common"
 	"financia/service/company"
+	"financia/service/fund"
 	"financia/service/stock"
+
 	"financia/service/user"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -48,7 +50,8 @@ func HTTPRouter() {
 		v1.GET("/code", user.Code)
 	}
 
-	auth := v1.Use(middleware.AuthCheck())
+	//auth := v1.Use(middleware.AuthCheck())
+	auth := v1.Use()
 	{
 		auth.GET("/tab/list", common.GetTabList)
 
@@ -60,6 +63,16 @@ func HTTPRouter() {
 		auth.GET("/stock/list", stock.ListStock)
 		auth.GET("/stock/have", stock.HaveStock)
 		auth.GET("/stock/data", stock.DataStock)
+		auth.GET("/stock/info", stock.InfoStock)
+		auth.GET("/stock/graph", stock.GraphStock)
+
+		auth.GET("/fund/query", fund.QueryFund)
+		auth.GET("/fund/list", fund.ListFund)
+		auth.GET("/fund/have", fund.HaveFund)
+		auth.GET("/fund/data", fund.DataFund)
+
+		auth.GET("/news", service.News)
+		auth.GET("/news/detail", service.NewsDetail)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

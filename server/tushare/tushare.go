@@ -22,21 +22,20 @@ type DailyResp struct {
 	Items  [][]interface{} `json:"items"`
 }
 
-// 获取批量数据入库
-func DailyAll(ctx context.Context, tsCode string) {
+func DailyStockAll(ctx context.Context, tsCode string) bool {
 	r := tuSharePost("daily", &DailyReq{
 		TsCode: tsCode,
 	})
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
 		zap.S().Errorf("[Daily] [json.Marshal] [err] = %s", err.Error())
-		return
+		return false
 	}
 
 	var resp *DailyResp
 	if err := json.Unmarshal(marshal, &resp); err != nil {
 		zap.S().Errorf("[Daily] [json.Unmarshal] [err] = %s", err.Error())
-		return
+		return false
 	}
 
 	data := make([]*model.StockData, 0, len(resp.Items))
@@ -57,8 +56,49 @@ func DailyAll(ctx context.Context, tsCode string) {
 	}
 	if err := dao.InsertStockData(ctx, data); err != nil {
 		zap.S().Errorf("[Daily] [InsertStockData] [err] = %s", err.Error())
-		return
+		return false
 	}
+	return len(data) > 0
+}
+
+func DailyFundAll(ctx context.Context, tsCode string) bool {
+	r := tuSharePost("fund_daily", &DailyReq{
+		TsCode: tsCode,
+	})
+
+	marshal, err := json.Marshal(r.(map[string]interface{}))
+	if err != nil {
+		zap.S().Errorf("[Daily] [json.Marshal] [err] = %s", err.Error())
+		return false
+	}
+
+	var resp *DailyResp
+	if err := json.Unmarshal(marshal, &resp); err != nil {
+		zap.S().Errorf("[Daily] [json.Unmarshal] [err] = %s", err.Error())
+		return false
+	}
+
+	data := make([]*model.FundData, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		data = append(data, &model.FundData{
+			TsCode:    cast.ToString(item[0]),
+			TradeDate: util.ConvertDateStrToTime(cast.ToString(item[1]), timeLayout),
+			Open:      cast.ToFloat64(item[2]),
+			High:      cast.ToFloat64(item[3]),
+			Low:       cast.ToFloat64(item[4]),
+			Close:     cast.ToFloat64(item[5]),
+			PreClose:  cast.ToFloat64(item[6]),
+			Change:    cast.ToFloat64(item[7]),
+			PctChg:    cast.ToFloat64(item[8]),
+			Vol:       cast.ToInt64(item[9]),
+			Amount:    cast.ToFloat64(item[10]),
+		})
+	}
+	if err := dao.InsertFundData(ctx, data); err != nil {
+		zap.S().Errorf("[Daily] [InsertFundData] [err] = %s", err.Error())
+		return false
+	}
+	return len(data) > 0
 }
 
 // 每日执行获取当日数据

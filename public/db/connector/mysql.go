@@ -52,7 +52,7 @@ func init() {
 		ShardingKey:         "f_ts_code",          // 分片键
 		NumberOfShards:      20,                   // 分片数量
 		PrimaryKeyGenerator: sharding.PKSnowflake, // 使用 Snowflake 算法生成主键
-	}, model.StockData{})) // 注册需要分表的表
+	}, model.StockData{}, model.FundData{})) // 注册需要分表的表
 	if err != nil {
 		panic(fmt.Sprintf("failed to register sharding plugin: %v", err))
 	}
