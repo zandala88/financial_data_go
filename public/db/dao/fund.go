@@ -77,7 +77,17 @@ func CheckFundData(ctx context.Context, tsCode string) (bool, error) {
 }
 
 func InsertFundData(ctx context.Context, data []*model.FundData) error {
-	return connector.GetDB().WithContext(ctx).Create(data).Error
+	// 分批插入
+	for i := 0; i < len(data); i += 1000 {
+		end := i + 1000
+		if end > len(data) {
+			end = len(data)
+		}
+		if err := connector.GetDB().WithContext(ctx).Create(data[i:end]).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func CreateFund(ctx context.Context, fund *model.FundInfo) error {
@@ -91,4 +101,13 @@ func InsertFund(ctx context.Context, data []*model.FundInfo) error {
 func UpdateFund(ctx context.Context, fund *model.FundInfo) error {
 	return connector.GetDB().WithContext(ctx).Model(&model.FundInfo{}).
 		Where("id = ?", fund.Id).Updates(fund).Error
+}
+
+func GetFundData(ctx context.Context, tsCode, start, end string) ([]*model.FundData, error) {
+	var fundData []*model.FundData
+	err := connector.GetDB().WithContext(ctx).
+		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? AND f_trade_date between ? AND ? order by f_trade_date", tsCode, start, end).
+		Scan(&fundData).Error
+
+	return fundData, err
 }

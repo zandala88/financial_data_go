@@ -41,7 +41,15 @@ func HaveStock(c *gin.Context) {
 	}
 
 	if !have {
-		have = tushare.DailyStockAll(c, info.TsCode)
+		data := tushare.DailyStockAll(c, &tushare.DailyReq{
+			TsCode: info.TsCode,
+		})
+		have = len(data) > 0
+		if err := dao.InsertStockData(c, data); err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Errorf("[Daily] [InsertStockData] [err] = %s", err.Error())
+			return
+		}
 	}
 
 	util.SuccessResp(c, &HaveStockResp{

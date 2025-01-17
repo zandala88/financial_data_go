@@ -2,9 +2,12 @@ package stock
 
 import (
 	"financia/public/db/dao"
+	"financia/server/tushare"
 	"financia/util"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"strings"
+	"time"
 )
 
 type DataStockReq struct {
@@ -56,11 +59,13 @@ func DataStock(c *gin.Context) {
 	}
 
 	if len(list) == 0 {
-		util.SuccessResp(c, &DataStockResp{
-			Have: false,
-			List: nil,
+		data := tushare.DailyStockAll(c, &tushare.DailyReq{
+			TsCode: info.TsCode,
 		})
-		return
+		if err := dao.InsertStockData(c, data); err != nil {
+			zap.S().Error("[DataStock] [InsertStockData] [err] = ", err.Error())
+		}
+		list, err = dao.GetStockData(c, info.TsCode, req.StartDate, req.EndDate)
 	}
 
 	respList := make([]*DataStockSimple, 0, len(list))
@@ -78,6 +83,19 @@ func DataStock(c *gin.Context) {
 			Amount:    v.Amount,
 		})
 	}
+
+	// 异步更新数据
+	go func() {
+		last := list[len(list)-1]
+		date := strings.ReplaceAll(last.TradeDate.Add(time.Hour*24).Format("2006-01-02"), "-", "")
+		data := tushare.DailyStockAll(c, &tushare.DailyReq{
+			TsCode:    info.TsCode,
+			StartDate: date,
+		})
+		if err := dao.InsertStockData(c, data); err != nil {
+			zap.S().Error("[DataStock] [InsertStockData] [err] = ", err.Error())
+		}
+	}()
 
 	util.SuccessResp(c, &DataStockResp{
 		Have: true,

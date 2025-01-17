@@ -1,9 +1,7 @@
 package fund
 
 import (
-	"financia/public"
 	"financia/public/db/dao"
-	"financia/public/db/model"
 	"financia/server/tushare"
 	"financia/util"
 	"github.com/gin-gonic/gin"
@@ -41,12 +39,14 @@ func HaveFund(c *gin.Context) {
 	}
 
 	if !have {
-		have = tushare.DailyFundAll(c, info.TsCode)
-		if have {
-			dao.UpdateFund(c, &model.FundInfo{
-				Id:   info.Id,
-				Flag: public.FundInfoFlagExist,
-			})
+		data := tushare.DailyFundAll(c, &tushare.DailyReq{
+			TsCode: info.TsCode,
+		})
+		have = len(data) > 0
+		if err := dao.InsertFundData(c, data); err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Errorf("[Daily] [InsertFundData] [err] = %s", err.Error())
+			return
 		}
 	}
 

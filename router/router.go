@@ -4,7 +4,6 @@ import (
 	"errors"
 	"financia/config"
 	"financia/public/vaildator"
-	"financia/service"
 	"financia/service/common"
 	"financia/service/company"
 	"financia/service/fund"
@@ -70,9 +69,7 @@ func HTTPRouter() {
 		auth.GET("/fund/list", fund.ListFund)
 		auth.GET("/fund/have", fund.HaveFund)
 		auth.GET("/fund/data", fund.DataFund)
-
-		auth.GET("/news", service.News)
-		auth.GET("/news/detail", service.NewsDetail)
+		auth.GET("/fund/graph", fund.GraphFund)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

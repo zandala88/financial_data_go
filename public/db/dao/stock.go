@@ -133,5 +133,30 @@ func CreateStockData(ctx context.Context, data *model.StockData) error {
 }
 
 func InsertStockData(ctx context.Context, data []*model.StockData) error {
-	return connector.GetDB().WithContext(ctx).Create(&data).Error
+	// 分批插入
+	for i := 0; i < len(data); i += 1000 {
+		end := i + 1000
+		if end > len(data) {
+			end = len(data)
+		}
+		if err := connector.GetDB().WithContext(ctx).Create(data[i:end]).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SameMarketList 查询同市场股票列表
+func SameMarketList(ctx context.Context, market string, id int) ([]*model.StockInfo, error) {
+	var stockList []*model.StockInfo
+	err := connector.GetDB().WithContext(ctx).
+		Model(&model.StockInfo{}).Where("f_market = ?", market).Where("f_id <> ?", id).Find(&stockList).Error
+	return stockList, err
+}
+
+func SameIndustryList(ctx context.Context, industry string, id int) ([]*model.StockInfo, error) {
+	var stockList []*model.StockInfo
+	err := connector.GetDB().WithContext(ctx).
+		Model(&model.StockInfo{}).Where("f_industry = ?", industry).Where("f_id <> ?", id).Find(&stockList).Error
+	return stockList, err
 }
