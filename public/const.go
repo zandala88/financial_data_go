@@ -5,10 +5,12 @@ const (
 )
 
 const (
-	TuShareDaily          = "daily"
-	TuShareFundDaily      = "fund_daily"
-	TuShareFundSalesRatio = "fund_sales_ratio"
-	TuShareFundSalesVol   = "fund_sales_vol"
+	TuShareDaily           = "daily"
+	TuShareFundDaily       = "fund_daily"
+	TuShareFundSalesRatio  = "fund_sales_ratio"
+	TuShareFundSalesVol    = "fund_sales_vol"
+	TuShareFutTradeCal     = "trade_cal"
+	TuShareFutWeeklyDetail = "fut_weekly_detail"
 )
 
 const (

@@ -7,6 +7,7 @@ import (
 	"financia/service/common"
 	"financia/service/company"
 	"financia/service/fund"
+	"financia/service/fut"
 	"financia/service/stock"
 
 	"financia/service/user"
@@ -70,6 +71,9 @@ func HTTPRouter() {
 		auth.GET("/fund/have", fund.HaveFund)
 		auth.GET("/fund/data", fund.DataFund)
 		auth.GET("/fund/graph", fund.GraphFund)
+
+		auth.GET("/fut/cal", fut.CalFut)
+		auth.GET("/fut/detail", fut.DetailFut)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)
