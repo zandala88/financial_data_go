@@ -17,7 +17,6 @@ type CompanyInfo struct {
 	MainBusiness  string  `gorm:"column:f_main_business;type:text;comment:'主要业务及产品'"`
 }
 
-// TableName specifies the table name for the TCompanyInfo model.
 func (CompanyInfo) TableName() string {
 	return "t_company_info"
 }

@@ -26,7 +26,7 @@ type TuShareResp struct {
 	Data interface{} `json:"data"`
 }
 
-func tuSharePost(apiName string, data interface{}) any {
+func tuSharePost(apiName string, data interface{}, fields string) any {
 	client := resty.New()
 	tuShareResp := &TuShareResp{}
 
@@ -39,7 +39,7 @@ func tuSharePost(apiName string, data interface{}) any {
 			ApiName: apiName,
 			Token:   token,
 			Params:  data,
-			Fields:  "",
+			Fields:  fields,
 		}).
 		SetResult(&tuShareResp).
 		Post(url)

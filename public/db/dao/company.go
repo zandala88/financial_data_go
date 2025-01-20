@@ -6,6 +6,8 @@ import (
 	"financia/public/db/model"
 )
 
+// ProvinceDis 获取省份分布
+// 筛选参数
 func ProvinceDis(ctx context.Context) ([]string, error) {
 	var provinces []string
 	err := connector.GetDB().WithContext(ctx).
@@ -15,6 +17,7 @@ func ProvinceDis(ctx context.Context) ([]string, error) {
 	return provinces, err
 }
 
+// GetCompanyList 获取公司列表
 func GetCompanyList(ctx context.Context, search string, province []string, page, pageSize int) ([]*model.CompanyInfo, int64, error) {
 	var companyList []*model.CompanyInfo
 	db := connector.GetDB().Model(&model.CompanyInfo{})
@@ -34,6 +37,7 @@ func GetCompanyList(ctx context.Context, search string, province []string, page,
 	return companyList, count, err
 }
 
+// GetCompany 获取公司信息
 func GetCompany(ctx context.Context, id int) (*model.CompanyInfo, error) {
 	var company *model.CompanyInfo
 	err := connector.GetDB().WithContext(ctx).Where("f_id = ?", id).First(&company).Error

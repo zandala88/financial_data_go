@@ -1,12 +1,13 @@
 package tushare
 
 type DailyReq struct {
-	TsCode    string `json:"ts_code,omitempty"`
-	TradeDate string `json:"trade_date,omitempty"`
-	StartDate string `json:"start_date,omitempty"`
-	Exchange  string `json:"exchange,omitempty"`
-	EndDate   string `json:"end_date,omitempty"`
-	Prd       string `json:"prd,omitempty"`
+	TsCode     string `json:"ts_code,omitempty"`
+	TradeDate  string `json:"trade_date,omitempty"`
+	StartDate  string `json:"start_date,omitempty"`
+	Exchange   string `json:"exchange,omitempty"`
+	EndDate    string `json:"end_date,omitempty"`
+	Prd        string `json:"prd,omitempty"`
+	ReportType int    `json:"report_type,omitempty"` // 1
 }
 
 type DailyResp struct {
@@ -51,4 +52,16 @@ type FutWeeklyDetailResp struct {
 	McClose      float64 `json:"mcClose"`
 	CloseWow     float64 `json:"closeWow"`
 	WeekDate     string  `json:"weekDate"`
+}
+
+type StockIncomeResp struct {
+	AnnDate      string  `json:"annDate"`      // 公告日期
+	BasicEps     float64 `json:"basicEps"`     // 基本每股收益
+	TotalRevenue float64 `json:"totalRevenue"` // 营业总收入
+	TotalCogs    float64 `json:"totalCogs"`    // 营业总成本
+	OperExp      float64 `json:"operExp"`      // 营业支出
+	TotalProfit  float64 `json:"totalProfit"`  // 利润总额
+	IncomeTax    float64 `json:"incomeTax"`    // 所得税费用
+	NIncome      float64 `json:"nIncome"`      // 净利润
+	TComprIncome float64 `json:"tComprIncome"` // 综合收益总额
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
-	r := tuSharePost(public.TuShareDaily, req)
+	r := tuSharePost(public.TuShareDaily, req, "")
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
 		zap.S().Errorf("[DailyStockAll] [json.Marshal] [err] = %s", err.Error())
@@ -46,7 +46,7 @@ func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
 }
 
 func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
-	r := tuSharePost(public.TuShareFundDaily, req)
+	r := tuSharePost(public.TuShareFundDaily, req, "")
 
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
@@ -81,7 +81,7 @@ func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
 }
 
 func FundSalesRatio(ctx context.Context) []*FundSalesRatioResp {
-	r := tuSharePost(public.TuShareFundSalesRatio, nil)
+	r := tuSharePost(public.TuShareFundSalesRatio, nil, "")
 
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
@@ -113,7 +113,7 @@ func FundSalesRatio(ctx context.Context) []*FundSalesRatioResp {
 }
 
 func FundSalesVol(ctx context.Context) []*FundSalesVolResp {
-	r := tuSharePost(public.TuShareFundSalesVol, nil)
+	r := tuSharePost(public.TuShareFundSalesVol, nil, "")
 
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
@@ -149,7 +149,7 @@ func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 		Exchange:  "SSE",
 		StartDate: now,
 		EndDate:   end,
-	})
+	}, "")
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
 		zap.S().Errorf("[FundSalesVol] [json.Marshal] [err] = %s", err.Error())
@@ -174,7 +174,7 @@ func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 		Exchange:  "SZSE",
 		StartDate: now,
 		EndDate:   end,
-	})
+	}, "")
 	marshal, err = json.Marshal(r.(map[string]interface{}))
 	if err != nil {
 		zap.S().Errorf("[FundSalesVol] [json.Marshal] [err] = %s", err.Error())
@@ -200,7 +200,7 @@ func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 func FutWeeklyDetail(ctx context.Context, prd string) []*FutWeeklyDetailResp {
 	r := tuSharePost(public.TuShareFutWeeklyDetail, &DailyReq{
 		Prd: prd,
-	})
+	}, "")
 
 	marshal, err := json.Marshal(r.(map[string]interface{}))
 	if err != nil {
@@ -235,6 +235,43 @@ func FutWeeklyDetail(ctx context.Context, prd string) []*FutWeeklyDetailResp {
 			McClose:      cast.ToFloat64(item[13]),
 			CloseWow:     cast.ToFloat64(item[14]),
 			WeekDate:     weekDate,
+		})
+	}
+
+	return list
+}
+
+func StockIncome(ctx context.Context, tsCode string) []*StockIncomeResp {
+	r := tuSharePost(public.TuShareStockIncome, &DailyReq{
+		TsCode:     tsCode,
+		ReportType: 1,
+	}, "ann_date,basic_eps,total_revenue,total_cogs,"+
+		"oper_exp,total_profit,income_tax,n_income,t_compr_income")
+
+	marshal, err := json.Marshal(r.(map[string]interface{}))
+	if err != nil {
+		zap.S().Errorf("[FutWeeklyDetail] [json.Marshal] [err] = %s", err.Error())
+		return nil
+	}
+
+	var resp *DailyResp
+	if err := json.Unmarshal(marshal, &resp); err != nil {
+		zap.S().Errorf("[FutWeeklyDetail] [json.Unmarshal] [err] = %s", err.Error())
+		return nil
+	}
+
+	list := make([]*StockIncomeResp, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		list = append(list, &StockIncomeResp{
+			AnnDate:      util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			BasicEps:     cast.ToFloat64(item[1]),
+			TotalRevenue: cast.ToFloat64(item[2]),
+			TotalCogs:    cast.ToFloat64(item[3]),
+			OperExp:      cast.ToFloat64(item[4]),
+			TotalProfit:  cast.ToFloat64(item[5]),
+			IncomeTax:    cast.ToFloat64(item[6]),
+			NIncome:      cast.ToFloat64(item[7]),
+			TComprIncome: cast.ToFloat64(item[8]),
 		})
 	}
 

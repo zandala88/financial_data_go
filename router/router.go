@@ -65,6 +65,7 @@ func HTTPRouter() {
 		auth.GET("/stock/data", stock.DataStock)
 		auth.GET("/stock/info", stock.InfoStock)
 		auth.GET("/stock/graph", stock.GraphStock)
+		auth.GET("/stock/income", stock.IncomeStock)
 
 		auth.GET("/fund/query", fund.QueryFund)
 		auth.GET("/fund/list", fund.ListFund)

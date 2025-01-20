@@ -6,6 +6,7 @@ import (
 	"financia/public/db/model"
 )
 
+// DistinctFundFields 获取基金字段
 func DistinctFundFields(ctx context.Context) (map[string][]string, error) {
 	var fundType []string
 	var investType []string
@@ -31,9 +32,10 @@ func DistinctFundFields(ctx context.Context) (map[string][]string, error) {
 	return fields, nil
 }
 
+// GetFundList 获取基金列表
 func GetFundList(ctx context.Context, search string, fundType, investType []string, page, pageSize int) ([]*model.FundInfo, int64, error) {
 	var fundList []*model.FundInfo
-	db := connector.GetDB().Model(&model.FundInfo{})
+	db := connector.GetDB().Model(&model.FundInfo{}).WithContext(ctx)
 	if search != "" {
 		db = db.Where("f_name like ?", "%"+search+"%").
 			Or("f_management like ?", "%"+search+"%").
@@ -59,6 +61,7 @@ func GetFundList(ctx context.Context, search string, fundType, investType []stri
 	return fundList, count, nil
 }
 
+// GetFundInfo 获取基金信息
 func GetFundInfo(ctx context.Context, id int) (*model.FundInfo, error) {
 	var fundInfo model.FundInfo
 	err := connector.GetDB().WithContext(ctx).Model(&model.FundInfo{}).
@@ -67,6 +70,7 @@ func GetFundInfo(ctx context.Context, id int) (*model.FundInfo, error) {
 	return &fundInfo, err
 }
 
+// CheckFundData 检查基金数据
 func CheckFundData(ctx context.Context, tsCode string) (bool, error) {
 	var count int64
 	err := connector.GetDB().WithContext(ctx).
@@ -76,6 +80,7 @@ func CheckFundData(ctx context.Context, tsCode string) (bool, error) {
 	return count > 0, err
 }
 
+// InsertFundData 插入基金数据
 func InsertFundData(ctx context.Context, data []*model.FundData) error {
 	// 分批插入
 	for i := 0; i < len(data); i += 1000 {
@@ -103,6 +108,7 @@ func UpdateFund(ctx context.Context, fund *model.FundInfo) error {
 		Where("id = ?", fund.Id).Updates(fund).Error
 }
 
+// GetFundData 获取基金数据
 func GetFundData(ctx context.Context, tsCode, start, end string) ([]*model.FundData, error) {
 	var fundData []*model.FundData
 	err := connector.GetDB().WithContext(ctx).

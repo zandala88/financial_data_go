@@ -11,6 +11,7 @@ const (
 	TuShareFundSalesVol    = "fund_sales_vol"
 	TuShareFutTradeCal     = "trade_cal"
 	TuShareFutWeeklyDetail = "fut_weekly_detail"
+	TuShareStockIncome     = "income"
 )
 
 const (
