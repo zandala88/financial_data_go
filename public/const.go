@@ -5,15 +5,18 @@ const (
 )
 
 const (
-	TuShareDaily           = "daily"
-	TuShareFundDaily       = "fund_daily"
-	TuShareFundSalesRatio  = "fund_sales_ratio"
-	TuShareFundSalesVol    = "fund_sales_vol"
-	TuShareFutTradeCal     = "trade_cal"
-	TuShareFutWeeklyDetail = "fut_weekly_detail"
-	TuShareStockIncome     = "income"
-	TuShareStockForecast   = "forecast"
-	TuShareStockTop10      = "top10_holders"
+	TuShareDaily            = "daily"
+	TuShareFundDaily        = "fund_daily"
+	TuShareFundSalesRatio   = "fund_sales_ratio"
+	TuShareFundSalesVol     = "fund_sales_vol"
+	TuShareFutTradeCal      = "trade_cal"
+	TuShareFutWeeklyDetail  = "fut_weekly_detail"
+	TuShareStockIncome      = "income"
+	TuShareStockForecast    = "forecast"
+	TuShareStockHolderTop10 = "top10_holders"
+	TuShareStockHsgtTop10   = "hsgt_top10"
+	TuShareEconomicsShibor  = "shibor"
+	TuShareEconomicsCnGDP   = "cn_gdp"
 )
 
 const (

@@ -8,6 +8,7 @@ type DailyReq struct {
 	EndDate    string `json:"end_date,omitempty"`
 	Prd        string `json:"prd,omitempty"`
 	ReportType int    `json:"report_type,omitempty"` // 1
+	Q          string `json:"q,omitempty"`
 }
 
 type DailyResp struct {
@@ -85,4 +86,35 @@ type StockTop10Resp struct {
 	HoldFloatRatio float64 `json:"holdFloatRatio"` // 流通股比例
 	HoldChange     float64 `json:"holdChange"`     // 变动
 	HolderType     string  `json:"holderType"`     // 股东类型
+}
+
+type StockHsgtTop10Resp struct {
+	Name   string  `json:"name"`   // 股票名称
+	Close  float64 `json:"close"`  // 收盘价
+	Change float64 `json:"change"` // 涨跌幅
+	Rank   int     `json:"rank"`   // 排名
+	Amount float64 `json:"amount"` // 持股数量
+}
+
+type EconomicsShiborResp struct {
+	Date   string  `json:"date"`
+	On     float64 `json:"on"`
+	OneW   float64 `json:"oneW"`
+	TwoW   float64 `json:"twoW"`
+	OneM   float64 `json:"oneM"`
+	ThreeM float64 `json:"threeM"`
+	SixM   float64 `json:"sixM"`
+	NineM  float64 `json:"nineM"`
+	OneY   float64 `json:"oneY"`
+}
+
+type EconomicsCnGDPResp struct {
+	GDP    float64 `json:"gdp"`
+	GDPYoy float64 `json:"gdpYoy"`
+	PI     float64 `json:"pi"`
+	PIYoy  float64 `json:"piYoy"`
+	SI     float64 `json:"si"`
+	SIYoy  float64 `json:"siYoy"`
+	TI     float64 `json:"ti"`
+	TIYoy  float64 `json:"tiYoy"`
 }

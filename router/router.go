@@ -6,6 +6,7 @@ import (
 	"financia/public/vaildator"
 	"financia/service/common"
 	"financia/service/company"
+	"financia/service/economics"
 	"financia/service/fund"
 	"financia/service/fut"
 	"financia/service/stock"
@@ -68,6 +69,7 @@ func HTTPRouter() {
 		auth.GET("/stock/income", stock.IncomeStock)
 		auth.GET("/stock/forecast", stock.ForecastStock)
 		auth.GET("/stock/top10", stock.Top10Stock)
+		auth.GET("/stock/hsgt/top10", stock.Top10HsgtStock)
 
 		auth.GET("/fund/query", fund.QueryFund)
 		auth.GET("/fund/list", fund.ListFund)
@@ -77,6 +79,9 @@ func HTTPRouter() {
 
 		auth.GET("/fut/cal", fut.CalFut)
 		auth.GET("/fut/detail", fut.DetailFut)
+
+		auth.GET("/economics/shibor", economics.ShiborEconomics)
+		auth.GET("/economics/cn_gdp", economics.CnGdpEconomics)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

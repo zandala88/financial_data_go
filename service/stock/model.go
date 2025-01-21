@@ -117,3 +117,8 @@ type Top10StockRank struct {
 	HolderName string  `json:"holderName"`
 	HoldRatio  float64 `json:"holdRatio"`
 }
+
+type Top10HsgtStockResp struct {
+	ShList []*tushare.StockHsgtTop10Resp `json:"shList"`
+	SzList []*tushare.StockHsgtTop10Resp `json:"szList"`
+}

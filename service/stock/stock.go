@@ -292,10 +292,10 @@ func Top10Stock(c *gin.Context) {
 		return
 	}
 
-	top10 := tushare.StockTop10(c, stockInfo.TsCode)
+	top10 := tushare.StockHolderTop10(c, stockInfo.TsCode)
 	if top10 == nil || len(top10) == 0 {
 		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[Top10Stock] [StockTop10] [err] = ", "top10 is nil")
+		zap.S().Error("[Top10Stock] [StockHolderTop10] [err] = ", "top10 is nil")
 		return
 	}
 
@@ -318,5 +318,14 @@ func Top10Stock(c *gin.Context) {
 	util.SuccessResp(c, &Top10StockResp{
 		Rank: rank,
 		List: top10,
+	})
+}
+
+func Top10HsgtStock(c *gin.Context) {
+	sh, sz := tushare.StockHsgtTop10(c)
+
+	util.SuccessResp(c, &Top10HsgtStockResp{
+		ShList: sh,
+		SzList: sz,
 	})
 }

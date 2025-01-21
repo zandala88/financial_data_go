@@ -266,14 +266,14 @@ func StockForecast(ctx context.Context, tsCode string) []*StockForecastResp {
 	return list
 }
 
-func StockTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
-	r := tuSharePost(public.TuShareStockTop10, &DailyReq{
+func StockHolderTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
+	r := tuSharePost(public.TuShareStockHolderTop10, &DailyReq{
 		TsCode: tsCode,
 	}, "ann_date,holder_name,hold_amount,hold_ratio,hold_float_ratio,hold_change,holder_type")
 
 	var resp DailyResp
 	if err := marshalResp(r, &resp); err != nil {
-		zap.S().Errorf("[StockTop10] [marshalResp] [err] = %s", err.Error())
+		zap.S().Errorf("[StockHolderTop10] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -287,6 +287,102 @@ func StockTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
 			HoldFloatRatio: cast.ToFloat64(item[4]),
 			HoldChange:     cast.ToFloat64(item[5]),
 			HolderType:     cast.ToString(item[6]),
+		})
+	}
+
+	return list
+}
+
+func StockHsgtTop10(ctx context.Context) ([]*StockHsgtTop10Resp, []*StockHsgtTop10Resp) {
+	r := tuSharePost(public.TuShareStockHsgtTop10, &DailyReq{
+		TradeDate: util.GetYesterdayFormat(timeLayout),
+	}, "name,close,change,rank,market_type,amount")
+
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[StockHsgtTop10] [marshalResp] [err] = %s", err.Error())
+		return nil, nil
+	}
+
+	var sh []*StockHsgtTop10Resp
+	var sz []*StockHsgtTop10Resp
+
+	for _, item := range resp.Items {
+		marketType := cast.ToString(item[4])
+		if marketType == "1" {
+			sh = append(sh, &StockHsgtTop10Resp{
+				Name:   cast.ToString(item[0]),
+				Close:  cast.ToFloat64(item[1]),
+				Change: cast.ToFloat64(item[2]),
+				Rank:   cast.ToInt(item[3]),
+				Amount: cast.ToFloat64(item[5]),
+			})
+		} else if marketType == "3" {
+			sz = append(sz, &StockHsgtTop10Resp{
+				Name:   cast.ToString(item[0]),
+				Close:  cast.ToFloat64(item[1]),
+				Change: cast.ToFloat64(item[2]),
+				Rank:   cast.ToInt(item[3]),
+				Amount: cast.ToFloat64(item[5]),
+			})
+		}
+	}
+
+	return sh, sz
+}
+
+func EconomicsShibor(ctx context.Context) []*EconomicsShiborResp {
+	r := tuSharePost(public.TuShareEconomicsShibor, &DailyReq{
+		StartDate: "20240101",
+	}, "")
+
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[EconomicsShibor] [marshalResp] [err] = %s", err.Error())
+		return nil
+	}
+
+	list := make([]*EconomicsShiborResp, 0, len(resp.Items))
+
+	for _, item := range resp.Items {
+		list = append(list, &EconomicsShiborResp{
+			Date:   util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			On:     cast.ToFloat64(item[1]),
+			OneW:   cast.ToFloat64(item[2]),
+			TwoW:   cast.ToFloat64(item[3]),
+			OneM:   cast.ToFloat64(item[4]),
+			ThreeM: cast.ToFloat64(item[5]),
+			SixM:   cast.ToFloat64(item[6]),
+			NineM:  cast.ToFloat64(item[7]),
+			OneY:   cast.ToFloat64(item[8]),
+		})
+	}
+
+	return list
+}
+
+func EconomicsCnGDP(ctx context.Context, quarter string) []*EconomicsCnGDPResp {
+	r := tuSharePost(public.TuShareEconomicsCnGDP, &DailyReq{
+		Q: quarter,
+	}, "gdp,gdp_yoy,pi,pi_yoy,si,si_yoy,ti,ti_yoy")
+
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[EconomicsCnGDP] [marshalResp] [err] = %s", err.Error())
+		return nil
+	}
+
+	list := make([]*EconomicsCnGDPResp, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		list = append(list, &EconomicsCnGDPResp{
+			GDP:    cast.ToFloat64(item[0]),
+			GDPYoy: cast.ToFloat64(item[1]),
+			PI:     cast.ToFloat64(item[2]),
+			PIYoy:  cast.ToFloat64(item[3]),
+			SI:     cast.ToFloat64(item[4]),
+			SIYoy:  cast.ToFloat64(item[5]),
+			TI:     cast.ToFloat64(item[6]),
+			TIYoy:  cast.ToFloat64(item[7]),
 		})
 	}
 

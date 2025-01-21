@@ -41,3 +41,9 @@ func SecondsUntilMidnight() int {
 	remaining := midnight.Sub(now)
 	return int(remaining.Seconds())
 }
+
+func GetYesterdayFormat(format string) string {
+	// 获取昨天的时间
+	yesterday := time.Now().AddDate(0, 0, -1)
+	return yesterday.Format(format)
+}
