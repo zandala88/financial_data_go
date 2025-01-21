@@ -65,3 +65,14 @@ type StockIncomeResp struct {
 	NIncome      float64 `json:"nIncome"`      // 净利润
 	TComprIncome float64 `json:"tComprIncome"` // 综合收益总额
 }
+
+type StockForecastResp struct {
+	AnnDate       string  `json:"annDate"`       // 公告日期
+	Type          string  `json:"type"`          // 预告类型
+	PChangeMin    float64 `json:"pChangeMin"`    // 预告净利润变动幅度下限
+	PChangeMax    float64 `json:"pChangeMax"`    // 预告净利润变动幅度上限
+	NetProfitMin  float64 `json:"netProfitMin"`  // 预告净利润下限
+	NetProfitMax  float64 `json:"netProfitMax"`  // 预告净利润上限
+	LastParentNet float64 `json:"lastParentNet"` // 上年同期归属母公司净利润
+	ChangeReason  string  `json:"changeReason"`  // 预告净利润变动原因
+}

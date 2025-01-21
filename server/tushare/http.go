@@ -1,6 +1,7 @@
 package tushare
 
 import (
+	"encoding/json"
 	"financia/config"
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
@@ -49,4 +50,18 @@ func tuSharePost(apiName string, data interface{}, fields string) any {
 	}
 
 	return tuShareResp.Data
+}
+
+func marshalResp(r any, resp *DailyResp) error {
+	marshal, err := json.Marshal(r.(map[string]interface{}))
+	if err != nil {
+		zap.S().Errorf("[FutWeeklyDetail] [json.Marshal] [err] = %s", err.Error())
+		return err
+	}
+
+	if err := json.Unmarshal(marshal, &resp); err != nil {
+		zap.S().Errorf("[FutWeeklyDetail] [json.Unmarshal] [err] = %s", err.Error())
+		return err
+	}
+	return nil
 }

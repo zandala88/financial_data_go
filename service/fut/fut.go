@@ -7,13 +7,9 @@ import (
 	"financia/util"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"sort"
 	"time"
 )
-
-type CalFutResp struct {
-	Sse  []*tushare.FutTradeCalResp `json:"sse"`
-	Szse []*tushare.FutTradeCalResp `json:"szse"`
-}
 
 func CalFut(c *gin.Context) {
 	resp := &CalFutResp{
@@ -54,4 +50,22 @@ func tuShareSet(c *gin.Context, resp *CalFutResp) {
 	for i, v := range resp.Szse {
 		resp.Szse[i].CalDate = util.ConvertDateStrToTime(v.CalDate, "20060102").Format(time.DateOnly)
 	}
+}
+
+func DetailFut(c *gin.Context) {
+	var req DetailFutReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[DetailFut] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
+
+	list := tushare.FutWeeklyDetail(c, req.Prd)
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].WeekDate < list[j].WeekDate
+	})
+
+	util.SuccessResp(c, &DetailFutResp{
+		List: list,
+	})
 }

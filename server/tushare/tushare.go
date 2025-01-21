@@ -2,7 +2,6 @@ package tushare
 
 import (
 	"context"
-	"encoding/json"
 	"financia/public"
 	"financia/public/db/model"
 	"financia/util"
@@ -13,15 +12,10 @@ import (
 
 func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
 	r := tuSharePost(public.TuShareDaily, req, "")
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[DailyStockAll] [json.Marshal] [err] = %s", err.Error())
-		return nil
-	}
 
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[DailyStockAll] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[DailyStockAll] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -48,15 +42,9 @@ func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
 func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
 	r := tuSharePost(public.TuShareFundDaily, req, "")
 
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[DailyFundAll] [json.Marshal] [err] = %s", err.Error())
-		return nil
-	}
-
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[DailyFundAll] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[DailyFundAll] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -83,15 +71,9 @@ func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
 func FundSalesRatio(ctx context.Context) []*FundSalesRatioResp {
 	r := tuSharePost(public.TuShareFundSalesRatio, nil, "")
 
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[FundSalesRatio] [json.Marshal] [err] = %s", err.Error())
-		return nil
-	}
-
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[FundSalesRatio] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[FundSalesRatio] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -115,15 +97,9 @@ func FundSalesRatio(ctx context.Context) []*FundSalesRatioResp {
 func FundSalesVol(ctx context.Context) []*FundSalesVolResp {
 	r := tuSharePost(public.TuShareFundSalesVol, nil, "")
 
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[FundSalesVol] [json.Marshal] [err] = %s", err.Error())
-		return nil
-	}
-
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[FundSalesVol] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[FundSalesVol] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -150,15 +126,10 @@ func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 		StartDate: now,
 		EndDate:   end,
 	}, "")
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[FundSalesVol] [json.Marshal] [err] = %s", err.Error())
-		return nil, nil
-	}
 
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[FundSalesVol] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[FutTradeCal] [marshalResp] [err] = %s", err.Error())
 		return nil, nil
 	}
 
@@ -175,14 +146,9 @@ func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 		StartDate: now,
 		EndDate:   end,
 	}, "")
-	marshal, err = json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[FundSalesVol] [json.Marshal] [err] = %s", err.Error())
-		return nil, nil
-	}
 
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[FundSalesVol] [json.Unmarshal] [err] = %s", err.Error())
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[FutTradeCal] [marshalResp] [err] = %s", err.Error())
 		return nil, nil
 	}
 
@@ -202,15 +168,9 @@ func FutWeeklyDetail(ctx context.Context, prd string) []*FutWeeklyDetailResp {
 		Prd: prd,
 	}, "")
 
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[FutWeeklyDetail] [json.Marshal] [err] = %s", err.Error())
-		return nil
-	}
-
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[FutWeeklyDetail] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[FutWeeklyDetail] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -248,15 +208,9 @@ func StockIncome(ctx context.Context, tsCode string) []*StockIncomeResp {
 	}, "ann_date,basic_eps,total_revenue,total_cogs,"+
 		"oper_exp,total_profit,income_tax,n_income,t_compr_income")
 
-	marshal, err := json.Marshal(r.(map[string]interface{}))
-	if err != nil {
-		zap.S().Errorf("[FutWeeklyDetail] [json.Marshal] [err] = %s", err.Error())
-		return nil
-	}
-
-	var resp *DailyResp
-	if err := json.Unmarshal(marshal, &resp); err != nil {
-		zap.S().Errorf("[FutWeeklyDetail] [json.Unmarshal] [err] = %s", err.Error())
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[StockIncome] [marshalResp] [err] = %s", err.Error())
 		return nil
 	}
 
@@ -272,6 +226,40 @@ func StockIncome(ctx context.Context, tsCode string) []*StockIncomeResp {
 			IncomeTax:    cast.ToFloat64(item[6]),
 			NIncome:      cast.ToFloat64(item[7]),
 			TComprIncome: cast.ToFloat64(item[8]),
+		})
+	}
+
+	return list
+}
+
+func StockForecast(ctx context.Context, tsCode string) []*StockForecastResp {
+	r := tuSharePost(public.TuShareStockForecast, &DailyReq{
+		TsCode: tsCode,
+	}, "ann_date,type,p_change_min,p_change_max,net_profit_min,"+
+		"net_profit_max,last_parent_net,change_reason,update_flag")
+
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[StockForecast] [marshalResp] [err] = %s", err.Error())
+		return nil
+	}
+
+	list := make([]*StockForecastResp, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		updateFlag := cast.ToString(item[8])
+		if updateFlag == "1" {
+			continue
+		}
+
+		list = append(list, &StockForecastResp{
+			AnnDate:       util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			Type:          cast.ToString(item[1]),
+			PChangeMin:    cast.ToFloat64(item[2]),
+			PChangeMax:    cast.ToFloat64(item[3]),
+			NetProfitMin:  cast.ToFloat64(item[4]),
+			NetProfitMax:  cast.ToFloat64(item[5]),
+			LastParentNet: cast.ToFloat64(item[6]),
+			ChangeReason:  cast.ToString(item[7]),
 		})
 	}
 

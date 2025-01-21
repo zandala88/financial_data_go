@@ -7,30 +7,35 @@ import (
 	"go.uber.org/zap"
 )
 
-type ListCompanyReq struct {
-	Search   string   `form:"search"`
-	Province []string `form:"province"`
-	Page     int      `form:"page" binding:"required"`
-	PageSize int      `form:"pageSize" binding:"required"`
-}
+func DetailCompany(c *gin.Context) {
+	var req DetailCompanyReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[DetailCompany] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
 
-type ListCompanyResp struct {
-	List         []*ListCompanySimple `json:"list"`
-	TotalPageNum int                  `json:"totalPageNum"`
-	HasMore      bool                 `json:"hasMore"`
-}
+	company, err := dao.GetCompany(c, req.Id)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[DetailCompany] [GetCompanyDetail] [err] = ", err.Error())
+		return
+	}
 
-type ListCompanySimple struct {
-	Id         int     `json:"id"`
-	ComName    string  `json:"comName"`
-	ComId      string  `json:"comId"`
-	Chairman   string  `json:"chairman"`
-	Manager    string  `json:"manager"`
-	Secretary  string  `json:"secretary"`
-	RegCapital float64 `json:"regCapital"`
-	Province   string  `json:"province"`
-	City       string  `json:"city"`
-	Employees  int     `json:"employees"`
+	util.SuccessResp(c, &DetailCompanyResp{
+		ComName:       company.ComName,
+		ComId:         company.ComID,
+		Chairman:      company.Chairman,
+		Manager:       company.Manager,
+		Secretary:     company.Secretary,
+		RegCapital:    company.RegCapital,
+		Province:      company.Province,
+		City:          company.City,
+		Employees:     company.Employees,
+		Introduction:  company.Introduction,
+		BusinessScope: company.BusinessScope,
+		MainBusiness:  company.MainBusiness,
+	})
 }
 
 func ListCompany(c *gin.Context) {
@@ -70,5 +75,18 @@ func ListCompany(c *gin.Context) {
 		List:         respList,
 		HasMore:      count > int64(req.Page*(req.PageSize-1)+len(list)),
 		TotalPageNum: int(count/int64(req.PageSize) + 1),
+	})
+}
+
+func QueryCompany(c *gin.Context) {
+	dis, err := dao.ProvinceDis(c)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[QueryCompany] [ProvinceDis] [err] = ", err.Error())
+		return
+	}
+
+	util.SuccessResp(c, &QueryCompanyResp{
+		List: dis,
 	})
 }
