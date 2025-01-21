@@ -26,3 +26,9 @@ const (
 const (
 	FundInfoFlagExist = 1
 )
+
+const (
+	CnGdpEconomicsStartYear  = "1992"
+	CnGdpEconomicsEndYear    = "2024"
+	CnGdpEconomicsEndQuarter = "4"
+)

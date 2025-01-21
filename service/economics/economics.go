@@ -1,6 +1,7 @@
 package economics
 
 import (
+	"financia/public"
 	"financia/server/tushare"
 	"financia/util"
 	"github.com/gin-gonic/gin"
@@ -26,13 +27,13 @@ func CnGdpEconomics(c *gin.Context) {
 		return
 	}
 
-	if req.Year > "2024" || req.Year < "1992" {
+	if req.Year > public.CnGdpEconomicsEndYear || req.Year < public.CnGdpEconomicsStartYear {
 		util.FailRespWithCode(c, util.ReqDataError)
 		zap.S().Error("[CnGdpEconomics] [ShouldBindJSON] [err] = ", "year is invalid")
 		return
 	}
 
-	if req.Year == "2024" && req.Quarter == "4" {
+	if req.Year == public.CnGdpEconomicsEndYear && req.Quarter == public.CnGdpEconomicsEndQuarter {
 		util.FailRespWithCode(c, util.ReqDataError)
 		zap.S().Error("[CnGdpEconomics] [ShouldBindJSON] [err] = ", "quarter is invalid")
 		return

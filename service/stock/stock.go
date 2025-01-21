@@ -48,7 +48,7 @@ func DataStock(c *gin.Context) {
 	respList := make([]*DataStockSimple, 0, len(list))
 	for _, v := range list {
 		respList = append(respList, &DataStockSimple{
-			TradeDate: v.TradeDate.Format("2006-01-02"),
+			TradeDate: v.TradeDate.Format(time.DateOnly),
 			Open:      v.Open,
 			High:      v.High,
 			Low:       v.Low,
@@ -64,7 +64,7 @@ func DataStock(c *gin.Context) {
 	// 异步更新数据
 	go func() {
 		last := list[len(list)-1]
-		date := strings.ReplaceAll(last.TradeDate.Add(time.Hour*24).Format("2006-01-02"), "-", "")
+		date := strings.ReplaceAll(last.TradeDate.Add(time.Hour*24).Format(time.DateOnly), "-", "")
 		data := tushare.DailyStockAll(c, &tushare.DailyReq{
 			TsCode:    info.TsCode,
 			StartDate: date,
