@@ -276,3 +276,47 @@ func ForecastStock(c *gin.Context) {
 		List: forecast,
 	})
 }
+
+func Top10Stock(c *gin.Context) {
+	var req Top10StockReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[Top10Stock] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
+
+	stockInfo, err := dao.GetStockInfo(c, req.Id)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[Top10Stock] [GetStockInfo] [err] = ", err.Error())
+		return
+	}
+
+	top10 := tushare.StockTop10(c, stockInfo.TsCode)
+	if top10 == nil || len(top10) == 0 {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[Top10Stock] [StockTop10] [err] = ", "top10 is nil")
+		return
+	}
+
+	topDate := top10[0].AnnDate
+	rank := make([]*Top10StockRank, 0)
+	for _, v := range top10 {
+		if v.AnnDate != topDate {
+			break
+		}
+		rank = append(rank, &Top10StockRank{
+			HoldRatio:  v.HoldRatio,
+			HolderName: v.HolderName,
+		})
+	}
+
+	sort.Slice(top10, func(i, j int) bool {
+		return top10[i].AnnDate < top10[j].AnnDate
+	})
+
+	util.SuccessResp(c, &Top10StockResp{
+		Rank: rank,
+		List: top10,
+	})
+}

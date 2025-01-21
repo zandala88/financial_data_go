@@ -13,6 +13,7 @@ const (
 	TuShareFutWeeklyDetail = "fut_weekly_detail"
 	TuShareStockIncome     = "income"
 	TuShareStockForecast   = "forecast"
+	TuShareStockTop10      = "top10_holders"
 )
 
 const (

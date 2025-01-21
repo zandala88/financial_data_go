@@ -265,3 +265,30 @@ func StockForecast(ctx context.Context, tsCode string) []*StockForecastResp {
 
 	return list
 }
+
+func StockTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
+	r := tuSharePost(public.TuShareStockTop10, &DailyReq{
+		TsCode: tsCode,
+	}, "ann_date,holder_name,hold_amount,hold_ratio,hold_float_ratio,hold_change,holder_type")
+
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[StockTop10] [marshalResp] [err] = %s", err.Error())
+		return nil
+	}
+
+	list := make([]*StockTop10Resp, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		list = append(list, &StockTop10Resp{
+			AnnDate:        util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			HolderName:     cast.ToString(item[1]),
+			HoldAmount:     cast.ToFloat64(item[2]),
+			HoldRatio:      cast.ToFloat64(item[3]),
+			HoldFloatRatio: cast.ToFloat64(item[4]),
+			HoldChange:     cast.ToFloat64(item[5]),
+			HolderType:     cast.ToString(item[6]),
+		})
+	}
+
+	return list
+}

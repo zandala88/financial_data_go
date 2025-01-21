@@ -103,3 +103,17 @@ type ForecastStockReq struct {
 type ForecastStockResp struct {
 	List []*tushare.StockForecastResp `json:"list"`
 }
+
+type Top10StockReq struct {
+	Id int `form:"id" binding:"required"`
+}
+
+type Top10StockResp struct {
+	List []*tushare.StockTop10Resp `json:"list"`
+	Rank []*Top10StockRank         `json:"rank"`
+}
+
+type Top10StockRank struct {
+	HolderName string  `json:"holderName"`
+	HoldRatio  float64 `json:"holdRatio"`
+}

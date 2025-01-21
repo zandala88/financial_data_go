@@ -76,3 +76,13 @@ type StockForecastResp struct {
 	LastParentNet float64 `json:"lastParentNet"` // 上年同期归属母公司净利润
 	ChangeReason  string  `json:"changeReason"`  // 预告净利润变动原因
 }
+
+type StockTop10Resp struct {
+	AnnDate        string  `json:"annDate"`        // 公告日期
+	HolderName     string  `json:"holderName"`     // 股东名称
+	HoldAmount     float64 `json:"holdAmount"`     // 持股数量
+	HoldRatio      float64 `json:"holdRatio"`      // 持股比例
+	HoldFloatRatio float64 `json:"holdFloatRatio"` // 流通股比例
+	HoldChange     float64 `json:"holdChange"`     // 变动
+	HolderType     string  `json:"holderType"`     // 股东类型
+}
