@@ -14,3 +14,7 @@ type CnGdpEconomicsReq struct {
 type CnGdpEconomicsResp struct {
 	List []*tushare.EconomicsCnGDPResp `json:"list"`
 }
+
+type CnCpiEconomicsResp struct {
+	List []*tushare.EconomicsCnCPIResp `json:"list"`
+}

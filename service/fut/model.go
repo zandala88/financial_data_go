@@ -12,6 +12,15 @@ import "financia/server/tushare"
 // AP 苹果
 // PP 聚丙烯
 // RB 螺纹钢
+type QueryFutResp struct {
+	List []*QueryFutSimple `json:"list"`
+}
+
+type QueryFutSimple struct {
+	Prd  string `json:"prd"`
+	Name string `json:"name"`
+}
+
 type DetailFutReq struct {
 	Prd string `form:"prd" binding:"required"`
 }

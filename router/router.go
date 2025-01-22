@@ -77,11 +77,13 @@ func HTTPRouter() {
 		auth.GET("/fund/data", fund.DataFund)
 		auth.GET("/fund/graph", fund.GraphFund)
 
+		auth.GET("/fut/query", fut.QueryFut)
 		auth.GET("/fut/cal", fut.CalFut)
 		auth.GET("/fut/detail", fut.DetailFut)
 
 		auth.GET("/economics/shibor", economics.ShiborEconomics)
 		auth.GET("/economics/cn_gdp", economics.CnGdpEconomics)
+		auth.GET("/economics/cn_cpi", economics.CnCpiEconomics)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

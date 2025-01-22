@@ -11,6 +11,35 @@ import (
 	"time"
 )
 
+func QueryFut(c *gin.Context) {
+	util.SuccessResp(c, &QueryFutResp{
+		List: []*QueryFutSimple{
+			{Prd: "CU", Name: "铜"},
+			{Prd: "SR", Name: "白糖"},
+			{Prd: "CF", Name: "棉花"},
+			{Prd: "AL", Name: "铝"},
+			{Prd: "ZN", Name: "锌"},
+			{Prd: "JD", Name: "鸡蛋"},
+			{Prd: "FG", Name: "玻璃"},
+			{Prd: "AP", Name: "苹果"},
+			{Prd: "PP", Name: "聚丙烯"},
+			{Prd: "RB", Name: "螺纹钢"},
+			{Prd: "RO", Name: "菜籽油"},
+			{Prd: "M", Name: "豆粕"},
+			{Prd: "JM", Name: "焦煤"},
+			{Prd: "ZC", Name: "动力煤"},
+			{Prd: "Y", Name: "豆油"},
+			{Prd: "SS", Name: "不锈钢"},
+			{Prd: "BU", Name: "沥青"},
+			{Prd: "C", Name: "玉米"},
+			{Prd: "AU", Name: "黄金"},
+			{Prd: "RU", Name: "天胶"},
+			{Prd: "RR", Name: "粳米"},
+			{Prd: "RS", Name: "油菜籽"},
+		},
+	})
+}
+
 func CalFut(c *gin.Context) {
 	resp := &CalFutResp{
 		Sse:  make([]*tushare.FutTradeCalResp, 0),
@@ -39,17 +68,6 @@ func CalFut(c *gin.Context) {
 	}
 
 	util.SuccessResp(c, resp)
-}
-
-func tuShareSet(c *gin.Context, resp *CalFutResp) {
-	resp.Sse, resp.Szse = tushare.FutTradeCal(c)
-
-	for i, v := range resp.Sse {
-		resp.Sse[i].CalDate = util.ConvertDateStrToTime(v.CalDate, "20060102").Format(time.DateOnly)
-	}
-	for i, v := range resp.Szse {
-		resp.Szse[i].CalDate = util.ConvertDateStrToTime(v.CalDate, "20060102").Format(time.DateOnly)
-	}
 }
 
 func DetailFut(c *gin.Context) {

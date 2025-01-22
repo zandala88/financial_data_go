@@ -17,6 +17,7 @@ const (
 	TuShareStockHsgtTop10   = "hsgt_top10"
 	TuShareEconomicsShibor  = "shibor"
 	TuShareEconomicsCnGDP   = "cn_gdp"
+	TuShareEconomicsCnCPI   = "cn_cpi"
 )
 
 const (

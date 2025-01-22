@@ -47,3 +47,13 @@ func CnGdpEconomics(c *gin.Context) {
 		List: list,
 	})
 }
+
+func CnCpiEconomics(c *gin.Context) {
+	list := tushare.EconomicsCnCPI(c)
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Month < list[j].Month
+	})
+	util.SuccessResp(c, &CnCpiEconomicsResp{
+		List: list,
+	})
+}

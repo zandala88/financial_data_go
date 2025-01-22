@@ -9,6 +9,7 @@ type DailyReq struct {
 	Prd        string `json:"prd,omitempty"`
 	ReportType int    `json:"report_type,omitempty"` // 1
 	Q          string `json:"q,omitempty"`
+	StartM     string `json:"start_m,omitempty"`
 }
 
 type DailyResp struct {
@@ -117,4 +118,17 @@ type EconomicsCnGDPResp struct {
 	SIYoy  float64 `json:"siYoy"`
 	TI     float64 `json:"ti"`
 	TIYoy  float64 `json:"tiYoy"`
+}
+
+type EconomicsCnCPIResp struct {
+	Month    string  `json:"month"`
+	NtYoy    float64 `json:"ntYoy"`
+	NtMom    float64 `json:"ntMom"`
+	NtAccu   float64 `json:"ntAccu"`
+	TownYoy  float64 `json:"townYoy"`
+	TownMom  float64 `json:"townMom"`
+	TownAccu float64 `json:"townAccu"`
+	CntYoy   float64 `json:"cntYoy"`
+	CntMom   float64 `json:"cntMom"`
+	CntAccu  float64 `json:"cntAccu"`
 }

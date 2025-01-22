@@ -388,3 +388,33 @@ func EconomicsCnGDP(ctx context.Context, quarter string) []*EconomicsCnGDPResp {
 
 	return list
 }
+
+func EconomicsCnCPI(ctx context.Context) []*EconomicsCnCPIResp {
+	r := tuSharePost(public.TuShareEconomicsCnCPI, &DailyReq{
+		StartM: "202401",
+	}, "month,nt_yoy,nt_mom,nt_accu,town_yoy,town_mom,town_accu,cnt_yoy,cnt_mom,cnt_accu")
+
+	var resp DailyResp
+	if err := marshalResp(r, &resp); err != nil {
+		zap.S().Errorf("[EconomicsCnCPI] [marshalResp] [err] = %s", err.Error())
+		return nil
+	}
+
+	list := make([]*EconomicsCnCPIResp, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		list = append(list, &EconomicsCnCPIResp{
+			Month:    cast.ToString(item[0]),
+			NtYoy:    cast.ToFloat64(item[1]),
+			NtMom:    cast.ToFloat64(item[2]),
+			NtAccu:   cast.ToFloat64(item[3]),
+			TownYoy:  cast.ToFloat64(item[4]),
+			TownMom:  cast.ToFloat64(item[5]),
+			TownAccu: cast.ToFloat64(item[6]),
+			CntYoy:   cast.ToFloat64(item[7]),
+			CntMom:   cast.ToFloat64(item[8]),
+			CntAccu:  cast.ToFloat64(item[9]),
+		})
+	}
+
+	return list
+}
