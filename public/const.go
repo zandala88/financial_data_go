@@ -1,7 +1,10 @@
 package public
 
 const (
-	RedisKeyFundSalesRatio = "fund_sales_ratio"
+	RedisKeyFundSalesRatio  = "fund_sales_ratio"
+	RedisKeyShiborEconomics = "shibor_economics"
+	RedisKeyCnGdpEconomics  = "cn_gdp_economics"
+	RedisKeyCnCpiEconomics  = "cn_cpi_economics"
 )
 
 const (
