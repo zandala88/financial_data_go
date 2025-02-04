@@ -1,10 +1,15 @@
 package fund
 
 import (
+	"encoding/json"
+	"errors"
+	"financia/public"
+	"financia/public/db/connector"
 	"financia/public/db/dao"
 	"financia/server/tushare"
 	"financia/util"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 	"sort"
 	"strings"
@@ -81,23 +86,82 @@ func DataFund(c *gin.Context) {
 }
 
 func GraphFund(c *gin.Context) {
-	radio := tushare.FundSalesRatio(c)
-	vol := tushare.FundSalesVol(c)
+	resp := &GraphFundResp{}
 
-	sort.Slice(vol, func(i, j int) bool {
-		// year sec
-		if vol[i].Year == vol[j].Year {
-			// quarter sec
-			if vol[i].Quarter == vol[j].Quarter {
-				return vol[i].Rank < vol[j].Rank
+	// 获取redis数据
+	rdb := connector.GetRedis().WithContext(c)
+	radioResult, err := rdb.Get(c, public.RedisKeyFundRadio).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[GraphFund] [rdb.Get] [err] = ", err.Error())
+		return
+	}
+	if errors.Is(err, redis.Nil) {
+		radio := tushare.FundSalesRatio(c)
+
+		go func() {
+			listStr, _ := json.Marshal(radio)
+			_, err := rdb.Set(c, public.RedisKeyFundRadio, listStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
+			if err != nil {
+				util.FailRespWithCode(c, util.InternalServerError)
+				zap.S().Error("[GraphFund] [rdb.Set] [err] = ", err.Error())
+				return
 			}
+		}()
+
+		resp.Radio = radio
+	} else {
+		var radio []*tushare.FundSalesRatioResp
+		if err := json.Unmarshal([]byte(radioResult), &radio); err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Error("[GraphFund] [json.Unmarshal] [err] = ", err.Error())
+			return
 		}
-		return vol[i].Year < vol[j].Year
-	})
-	util.SuccessResp(c, &GraphFundResp{
-		Radio: radio,
-		Inst:  vol,
-	})
+		resp.Radio = radio
+	}
+
+	volResult, err := rdb.Get(c, public.RedisKeyFundVol).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[GraphFund] [rdb.Get] [err] = ", err.Error())
+		return
+	}
+	if errors.Is(err, redis.Nil) {
+		vol := tushare.FundSalesVol(c)
+
+		sort.Slice(vol, func(i, j int) bool {
+			// year sec
+			if vol[i].Year == vol[j].Year {
+				// quarter sec
+				if vol[i].Quarter == vol[j].Quarter {
+					return vol[i].Rank < vol[j].Rank
+				}
+			}
+			return vol[i].Year < vol[j].Year
+		})
+
+		go func() {
+			listStr, _ := json.Marshal(vol)
+			_, err := rdb.Set(c, public.RedisKeyFundVol, listStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
+			if err != nil {
+				util.FailRespWithCode(c, util.InternalServerError)
+				zap.S().Error("[GraphFund] [rdb.Set] [err] = ", err.Error())
+				return
+			}
+		}()
+
+		resp.Inst = vol
+	} else {
+		var vol []*tushare.FundSalesVolResp
+		if err := json.Unmarshal([]byte(volResult), &vol); err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Error("[GraphFund] [json.Unmarshal] [err] = ", err.Error())
+			return
+		}
+		resp.Inst = vol
+	}
+
+	util.SuccessResp(c, resp)
 }
 
 func HaveFund(c *gin.Context) {

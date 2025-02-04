@@ -54,35 +54,60 @@ func HTTPRouter() {
 	//auth := v1.Use(middleware.AuthCheck())
 	auth := v1.Use()
 	{
+		// 顶部tab
 		auth.GET("/tab/list", common.GetTabList)
 
+		// 公司 - 筛选参数
 		auth.GET("/company/query", company.QueryCompany)
+		// 公司 - 列表
 		auth.GET("/company/list", company.ListCompany)
+		// 公司 - 详情
 		auth.GET("/company", company.DetailCompany)
 
+		// 股票 - 筛选参数
 		auth.GET("/stock/query", stock.QueryStock)
+		// 股票 - 列表
 		auth.GET("/stock/list", stock.ListStock)
+		// 股票 - 判断是否有数据
 		auth.GET("/stock/have", stock.HaveStock)
+		// 股票 - 数据
 		auth.GET("/stock/data", stock.DataStock)
+		// 股票 - 详情中的信息
 		auth.GET("/stock/info", stock.InfoStock)
+		// 股票 - 首页图表
 		auth.GET("/stock/graph", stock.GraphStock)
+		// 股票 - 利润表
 		auth.GET("/stock/income", stock.IncomeStock)
+		// 股票 - 业绩预告
 		auth.GET("/stock/forecast", stock.ForecastStock)
+		// 股票 - 详情 - 十大股东
 		auth.GET("/stock/top10", stock.Top10Stock)
+		// 股票 - 首页排行
 		auth.GET("/stock/hsgt/top10", stock.Top10HsgtStock)
 
+		// 公募基金 - 筛选参数
 		auth.GET("/fund/query", fund.QueryFund)
+		// 公募基金 - 列表
 		auth.GET("/fund/list", fund.ListFund)
+		// 公募基金 - 判断是否有数据
 		auth.GET("/fund/have", fund.HaveFund)
+		// 公募基金 - 数据
 		auth.GET("/fund/data", fund.DataFund)
+		// 公募基金 - 首页图表
 		auth.GET("/fund/graph", fund.GraphFund)
 
+		// 期货 - 筛选参数
 		auth.GET("/fut/query", fut.QueryFut)
+		// 期货 - 日历
 		auth.GET("/fut/cal", fut.CalFut)
+		// 期货 - 数据
 		auth.GET("/fut/detail", fut.DetailFut)
 
+		// 宏观经济 - shibor利率
 		auth.GET("/economics/shibor", economics.ShiborEconomics)
+		// 宏观经济 - GDP
 		auth.GET("/economics/cn_gdp", economics.CnGdpEconomics)
+		// 宏观经济 - CPI
 		auth.GET("/economics/cn_cpi", economics.CnCpiEconomics)
 	}
 

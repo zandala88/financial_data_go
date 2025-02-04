@@ -5,6 +5,8 @@ const (
 	RedisKeyShiborEconomics = "shibor_economics"
 	RedisKeyCnGdpEconomics  = "cn_gdp_economics"
 	RedisKeyCnCpiEconomics  = "cn_cpi_economics"
+	RedisKeyFundRadio       = "fund_radio"
+	RedisKeyFundVol         = "fund_vol"
 )
 
 const (
