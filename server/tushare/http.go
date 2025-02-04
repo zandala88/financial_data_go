@@ -8,8 +8,7 @@ import (
 )
 
 const (
-	url        = "http://api.tushare.pro"
-	timeLayout = "20060102"
+	url = "http://api.tushare.pro"
 )
 
 var token = config.Configs.TuShare.Token

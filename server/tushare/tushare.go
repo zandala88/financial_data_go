@@ -23,7 +23,7 @@ func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
 	for _, item := range resp.Items {
 		data = append(data, &model.StockData{
 			TsCode:    cast.ToString(item[0]),
-			TradeDate: util.ConvertDateStrToTime(cast.ToString(item[1]), timeLayout),
+			TradeDate: util.ConvertDateStrToTime(cast.ToString(item[1]), util.TimeDateOnlyWithOutSep),
 			Open:      cast.ToFloat64(item[2]),
 			High:      cast.ToFloat64(item[3]),
 			Low:       cast.ToFloat64(item[4]),
@@ -52,7 +52,7 @@ func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
 	for _, item := range resp.Items {
 		data = append(data, &model.FundData{
 			TsCode:    cast.ToString(item[0]),
-			TradeDate: util.ConvertDateStrToTime(cast.ToString(item[1]), timeLayout),
+			TradeDate: util.ConvertDateStrToTime(cast.ToString(item[1]), util.TimeDateOnlyWithOutSep),
 			Open:      cast.ToFloat64(item[2]),
 			High:      cast.ToFloat64(item[3]),
 			Low:       cast.ToFloat64(item[4]),
@@ -119,8 +119,8 @@ func FundSalesVol(ctx context.Context) []*FundSalesVolResp {
 }
 
 func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
-	now := time.Now().Add(-31 * 24 * time.Hour).Format("20060102")
-	end := time.Now().Add(31 * 24 * time.Hour).Format("20060102")
+	now := time.Now().Add(-31 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
+	end := time.Now().Add(31 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
 	r := tuSharePost(public.TuShareFutTradeCal, &DailyReq{
 		Exchange:  "SSE",
 		StartDate: now,
@@ -217,7 +217,7 @@ func StockIncome(ctx context.Context, tsCode string) []*StockIncomeResp {
 	list := make([]*StockIncomeResp, 0, len(resp.Items))
 	for _, item := range resp.Items {
 		list = append(list, &StockIncomeResp{
-			AnnDate:      util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			AnnDate:      util.ConvertDateStrToTime(cast.ToString(item[0]), util.TimeDateOnlyWithOutSep).Format(time.DateOnly),
 			BasicEps:     cast.ToFloat64(item[1]),
 			TotalRevenue: cast.ToFloat64(item[2]),
 			TotalCogs:    cast.ToFloat64(item[3]),
@@ -252,7 +252,7 @@ func StockForecast(ctx context.Context, tsCode string) []*StockForecastResp {
 		}
 
 		list = append(list, &StockForecastResp{
-			AnnDate:       util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			AnnDate:       util.ConvertDateStrToTime(cast.ToString(item[0]), util.TimeDateOnlyWithOutSep).Format(time.DateOnly),
 			Type:          cast.ToString(item[1]),
 			PChangeMin:    cast.ToFloat64(item[2]),
 			PChangeMax:    cast.ToFloat64(item[3]),
@@ -280,7 +280,7 @@ func StockHolderTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
 	list := make([]*StockTop10Resp, 0, len(resp.Items))
 	for _, item := range resp.Items {
 		list = append(list, &StockTop10Resp{
-			AnnDate:        util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			AnnDate:        util.ConvertDateStrToTime(cast.ToString(item[0]), util.TimeDateOnlyWithOutSep).Format(time.DateOnly),
 			HolderName:     cast.ToString(item[1]),
 			HoldAmount:     cast.ToFloat64(item[2]),
 			HoldRatio:      cast.ToFloat64(item[3]),
@@ -346,7 +346,7 @@ func EconomicsShibor(ctx context.Context) []*EconomicsShiborResp {
 
 	for _, item := range resp.Items {
 		list = append(list, &EconomicsShiborResp{
-			Date:   util.ConvertDateStrToTime(cast.ToString(item[0]), timeLayout).Format(time.DateOnly),
+			Date:   util.ConvertDateStrToTime(cast.ToString(item[0]), util.TimeDateOnlyWithOutSep).Format(time.DateOnly),
 			On:     cast.ToFloat64(item[1]),
 			OneW:   cast.ToFloat64(item[2]),
 			TwoW:   cast.ToFloat64(item[3]),

@@ -374,7 +374,7 @@ func Top10HsgtStock(c *gin.Context) {
 		zap.S().Errorf("[CalFut] [json.Unmarshal] [err] = %s", err.Error())
 	}
 
-	date := time.Now().Format("20060102")
+	date := time.Now().Format(util.TimeDateOnlyWithOutSep)
 	now := time.Now()
 	for _, v := range timeList.Sse {
 		t := util.ConvertDateStrToTime(v.CalDate, time.DateOnly)
@@ -383,7 +383,7 @@ func Top10HsgtStock(c *gin.Context) {
 		}
 
 		if v.IsOpen == public.MarketStatusOpen {
-			date = t.Format("20060102")
+			date = t.Format(util.TimeDateOnlyWithOutSep)
 			break
 		}
 	}

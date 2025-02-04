@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+const (
+	TimeDateOnlyWithOutSep = "20060102"
+)
+
 // RFC3339ToNormalTime
 // RFC3339 日期格式标准化
 func RFC3339ToNormalTime(rfc3339 string) string {
