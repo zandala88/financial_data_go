@@ -7,6 +7,7 @@ const (
 	RedisKeyCnCpiEconomics  = "cn_cpi_economics"
 	RedisKeyFundRadio       = "fund_radio"
 	RedisKeyFundVol         = "fund_vol"
+	RedisGraphStock         = "graph_stock"
 )
 
 const (
@@ -37,4 +38,10 @@ const (
 	CnGdpEconomicsStartYear  = "1992"
 	CnGdpEconomicsEndYear    = "2024"
 	CnGdpEconomicsEndQuarter = "4"
+)
+
+// 0: 休市 1: 开市
+const (
+	MarketStatusClose = iota
+	MarketStatusOpen
 )

@@ -293,9 +293,9 @@ func StockHolderTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
 	return list
 }
 
-func StockHsgtTop10(ctx context.Context) ([]*StockHsgtTop10Resp, []*StockHsgtTop10Resp) {
+func StockHsgtTop10(ctx context.Context, date string) ([]*StockHsgtTop10Resp, []*StockHsgtTop10Resp) {
 	r := tuSharePost(public.TuShareStockHsgtTop10, &DailyReq{
-		TradeDate: "20250115",
+		TradeDate: date,
 	}, "name,close,change,rank,market_type,amount")
 
 	var resp DailyResp

@@ -1,10 +1,16 @@
 package stock
 
 import (
+	"encoding/json"
+	"errors"
+	"financia/public"
+	"financia/public/db/connector"
 	"financia/public/db/dao"
 	"financia/server/tushare"
+	"financia/service/fut"
 	"financia/util"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 	"sort"
 	"strings"
@@ -82,18 +88,50 @@ func DataStock(c *gin.Context) {
 }
 
 func GraphStock(c *gin.Context) {
-	fields, err := dao.CountStockFields(c)
-	if err != nil {
+	rdb := connector.GetRedis().WithContext(c)
+	result, err := rdb.Get(c, public.RedisGraphStock).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
 		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Errorf("DistinctStockFields error: %s", err.Error())
+		zap.S().Error("[GraphStock] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 
-	util.SuccessResp(c, &GraphStockResp{
-		IsHs:     fields["is_hs"],
-		Exchange: fields["exchange"],
-		Market:   fields["market"],
-	})
+	if errors.Is(err, redis.Nil) {
+		fields, err := dao.CountStockFields(c)
+		if err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Errorf("CountStockFields error: %s", err.Error())
+			return
+		}
+
+		resp := &GraphStockResp{
+			IsHs:     fields["is_hs"],
+			Exchange: fields["exchange"],
+			Market:   fields["market"],
+		}
+
+		go func() {
+			listStr, _ := json.Marshal(resp)
+			_, err := rdb.Set(c, public.RedisGraphStock, listStr, 0).Result()
+			if err != nil {
+				util.FailRespWithCode(c, util.InternalServerError)
+				zap.S().Error("[GraphStock] [rdb.Set] [err] = ", err.Error())
+				return
+			}
+		}()
+
+		util.SuccessResp(c, resp)
+		return
+	}
+
+	resp := &GraphStockResp{}
+	if err := json.Unmarshal([]byte(result), resp); err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[GraphStock] [json.Unmarshal] [err] = ", err.Error())
+		return
+	}
+
+	util.SuccessResp(c, &resp)
 }
 
 func HaveStock(c *gin.Context) {
@@ -322,7 +360,35 @@ func Top10Stock(c *gin.Context) {
 }
 
 func Top10HsgtStock(c *gin.Context) {
-	sh, sz := tushare.StockHsgtTop10(c)
+	// 获取最近的交易日
+	rdb := connector.GetRedis().WithContext(c)
+	result, _ := rdb.Get(c, "cal_fut").Result()
+
+	timeList := &fut.CalFutResp{
+		Sse:  make([]*tushare.FutTradeCalResp, 0),
+		Szse: make([]*tushare.FutTradeCalResp, 0),
+	}
+	err := json.Unmarshal([]byte(result), timeList)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Errorf("[CalFut] [json.Unmarshal] [err] = %s", err.Error())
+	}
+
+	date := time.Now().Format("20060102")
+	now := time.Now()
+	for _, v := range timeList.Sse {
+		t := util.ConvertDateStrToTime(v.CalDate, time.DateOnly)
+		if t.After(now) {
+			continue
+		}
+
+		if v.IsOpen == public.MarketStatusOpen {
+			date = t.Format("20060102")
+			break
+		}
+	}
+
+	sh, sz := tushare.StockHsgtTop10(c, date)
 
 	util.SuccessResp(c, &Top10HsgtStockResp{
 		ShList: sh,
