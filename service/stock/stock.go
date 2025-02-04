@@ -3,15 +3,20 @@ package stock
 import (
 	"encoding/json"
 	"errors"
+	"financia/config"
 	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/dao"
 	"financia/server/tushare"
 	"financia/service/fut"
 	"financia/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"math"
 	"sort"
 	"strings"
 	"time"
@@ -89,7 +94,7 @@ func DataStock(c *gin.Context) {
 
 func GraphStock(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
-	result, err := rdb.Get(c, public.RedisGraphStock).Result()
+	result, err := rdb.Get(c, public.RedisKeyGraphStock).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		util.FailRespWithCode(c, util.InternalServerError)
 		zap.S().Error("[GraphStock] [rdb.Get] [err] = ", err.Error())
@@ -112,7 +117,7 @@ func GraphStock(c *gin.Context) {
 
 		go func() {
 			listStr, _ := json.Marshal(resp)
-			_, err := rdb.Set(c, public.RedisGraphStock, listStr, 0).Result()
+			_, err := rdb.Set(c, public.RedisKeyGraphStock, listStr, 0).Result()
 			if err != nil {
 				util.FailRespWithCode(c, util.InternalServerError)
 				zap.S().Error("[GraphStock] [rdb.Set] [err] = ", err.Error())
@@ -393,5 +398,97 @@ func Top10HsgtStock(c *gin.Context) {
 	util.SuccessResp(c, &Top10HsgtStockResp{
 		ShList: sh,
 		SzList: sz,
+	})
+}
+
+func PredictStock(c *gin.Context) {
+	var req PredictStockReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[PredictStock] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
+
+	stockInfo, err := dao.GetStockInfo(c, req.Id)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictStock] [GetStockInfo] [err] = ", err.Error())
+		return
+	}
+
+	stockData, err := dao.GetStockDataLimit30(c, stockInfo.TsCode)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictStock] [GetStockDataLimit30] [err] = ", err.Error())
+		return
+	}
+
+	if len(stockData) == 0 {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictStock] [GetStockDataLimit30] [err] = ", "stockData is nil")
+		return
+	}
+
+	sort.Slice(stockData, func(i, j int) bool {
+		return stockData[i].TradeDate.Before(stockData[j].TradeDate)
+	})
+
+	last7 := make([]float64, 0, 7)
+	for i := range stockData[len(stockData)-7:] {
+		last7 = append(last7, stockData[i].Close)
+	}
+
+	rdb := connector.GetRedis().WithContext(c)
+	result, err := rdb.Get(c, fmt.Sprintf(public.RedisKeyStockPredict, req.Id)).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictStock] [rdb.Get] [err] = ", err.Error())
+		return
+	}
+	if !errors.Is(err, redis.Nil) {
+		util.SuccessResp(c, &PredictStockResp{
+			List: last7,
+			Val:  cast.ToFloat64(result),
+		})
+		return
+	}
+
+	pyReq := &PythonPredictReq{
+		Data: make([]*PythonPredictReqSimple, 0, len(stockData)),
+	}
+
+	for _, v := range stockData {
+		pyReq.Data = append(pyReq.Data, &PythonPredictReqSimple{
+			Date:   v.TradeDate.Format(time.DateOnly),
+			CoIMF1: v.Open,
+			CoIMF2: v.High,
+			CoIMF3: v.Low,
+			CoIMF4: v.Vol,
+			Target: v.Close,
+		})
+	}
+
+	pyResp := &PythonPredictResp{}
+
+	client := resty.New()
+	_, err = client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(pyReq).
+		SetResult(&pyResp).
+		Post(config.Configs.Python.Url)
+
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictStock] [err] = ", err.Error())
+		return
+	}
+
+	pyResp.Data.Val = math.Floor(pyResp.Data.Val*1000) / 1000
+
+	rdb.Set(c, fmt.Sprintf(public.RedisKeyStockPredict, req.Id), pyResp.Data.Val, time.Second*time.Duration(util.SecondsUntilMidnight()))
+
+	util.SuccessResp(c, &PredictStockResp{
+		List: last7,
+		Val:  pyResp.Data.Val,
 	})
 }

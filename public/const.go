@@ -7,7 +7,8 @@ const (
 	RedisKeyCnCpiEconomics  = "cn_cpi_economics"
 	RedisKeyFundRadio       = "fund_radio"
 	RedisKeyFundVol         = "fund_vol"
-	RedisGraphStock         = "graph_stock"
+	RedisKeyGraphStock      = "graph_stock"
+	RedisKeyStockPredict    = "stock_predict:%d"
 )
 
 const (

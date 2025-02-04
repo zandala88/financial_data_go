@@ -16,6 +16,7 @@ type Config struct {
 	Logger  LoggerConfig
 	Email   EmailConfig
 	TuShare TuShareConfig
+	Python  PythonConfig
 }
 
 type MySQLConfig struct {
@@ -69,6 +70,10 @@ type EmailConfig struct {
 
 type TuShareConfig struct {
 	Token string
+}
+
+type PythonConfig struct {
+	Url string
 }
 
 func init() {

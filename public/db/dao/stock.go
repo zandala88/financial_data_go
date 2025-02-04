@@ -119,6 +119,15 @@ func GetStockData(ctx context.Context, tsCode, start, end string) ([]*model.Stoc
 	return stockData, err
 }
 
+func GetStockDataLimit30(ctx context.Context, tsCode string) ([]*model.StockData, error) {
+	var stockData []*model.StockData
+	err := connector.GetDB().WithContext(ctx).
+		Raw("SELECT * FROM t_stock_data WHERE f_ts_code = ? order by f_trade_date desc limit 31", tsCode).
+		Scan(&stockData).Error
+
+	return stockData, err
+}
+
 func CheckStockData(ctx context.Context, tsCode string) (bool, error) {
 	var count int64
 	err := connector.GetDB().WithContext(ctx).

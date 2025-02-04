@@ -84,6 +84,8 @@ func HTTPRouter() {
 		auth.GET("/stock/top10", stock.Top10Stock)
 		// 股票 - 首页排行
 		auth.GET("/stock/hsgt/top10", stock.Top10HsgtStock)
+		// 股票 - 预测数据
+		auth.GET("/stock/predict", stock.PredictStock)
 
 		// 公募基金 - 筛选参数
 		auth.GET("/fund/query", fund.QueryFund)
