@@ -70,6 +70,14 @@ func GetFundInfo(ctx context.Context, id int) (*model.FundInfo, error) {
 	return &fundInfo, err
 }
 
+func GetFundInfos(ctx context.Context, ids []int) ([]*model.FundInfo, error) {
+	var fundInfos []*model.FundInfo
+	err := connector.GetDB().WithContext(ctx).Model(&model.FundInfo{}).
+		Where("id in ?", ids).Find(&fundInfos).Error
+
+	return fundInfos, err
+}
+
 // CheckFundData 检查基金数据
 func CheckFundData(ctx context.Context, tsCode string) (bool, error) {
 	var count int64
@@ -113,6 +121,15 @@ func GetFundData(ctx context.Context, tsCode, start, end string) ([]*model.FundD
 	var fundData []*model.FundData
 	err := connector.GetDB().WithContext(ctx).
 		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? AND f_trade_date between ? AND ? order by f_trade_date", tsCode, start, end).
+		Scan(&fundData).Error
+
+	return fundData, err
+}
+
+func GetFundDataLimit1(ctx context.Context, tsCode string) (model.FundData, error) {
+	var fundData model.FundData
+	err := connector.GetDB().WithContext(ctx).
+		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? order by f_trade_date desc limit 1", tsCode).
 		Scan(&fundData).Error
 
 	return fundData, err

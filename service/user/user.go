@@ -3,12 +3,20 @@ package user
 import (
 	"errors"
 	"financia/public"
+	"financia/public/db/connector"
 	"financia/public/db/dao"
+	"financia/public/db/model"
 	"financia/server"
+	"financia/server/python"
 	"financia/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
+	"sort"
+	"sync"
 )
 
 // Code 获取验证码
@@ -120,8 +128,140 @@ func Info(c *gin.Context) {
 		return
 	}
 
-	util.SuccessResp(c, &UserInfoResp{
-		Email:    user.Email,
-		UserName: user.Username,
+	resp := &UserInfoResp{
+		Email:     user.Email,
+		UserName:  user.Username,
+		StockList: make([]*UserInfoData, 0),
+		FundList:  make([]*UserInfoDataSimple, 0),
+	}
+
+	rdb := connector.GetRedis().WithContext(c)
+	eg, ctx := errgroup.WithContext(c)
+
+	pipe := rdb.Pipeline()
+	stockFollowCmd := pipe.SMembers(ctx, fmt.Sprintf(public.RedisKeyStockFollow, userId))
+	fundFollowCmd := pipe.SMembers(ctx, fmt.Sprintf(public.RedisKeyFundFollow, userId))
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
+		return
+	}
+
+	stockResult, _ := stockFollowCmd.Result()
+	fundResult, _ := fundFollowCmd.Result()
+
+	eg.Go(func() error {
+		stockIdList := cast.ToIntSlice(stockResult)
+
+		stockInfos, err := dao.GetStockInfos(c, stockIdList)
+		if err != nil {
+			zap.S().Error("[Info] [GetStockInfos] [err] = ", err.Error())
+			return err
+		}
+
+		predictKeys := make([]string, 0, len(stockInfos))
+		for _, v := range stockInfos {
+			predictKeys = append(predictKeys, fmt.Sprintf(public.RedisKeyStockPredict, v.Id))
+		}
+
+		pipe = rdb.Pipeline()
+		predictCmd := pipe.MGet(ctx, predictKeys...)
+		if _, err := pipe.Exec(ctx); err != nil && !errors.Is(err, redis.Nil) {
+			zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
+			return err
+		}
+
+		predictResults, _ := predictCmd.Result()
+
+		// 需要调用 Python 预测的股票
+		var stocksToPredict []*model.StockInfo
+
+		for i, v := range stockInfos {
+			if predictResults[i] != nil {
+				// 直接使用 Redis 预测值
+				resp.StockList = append(resp.StockList, &UserInfoData{
+					Id:      v.Id,
+					Name:    v.Name,
+					NextVal: cast.ToFloat64(predictResults[i]), // Redis 缓存预测值
+				})
+			} else {
+				// 需要进行 Python 预测
+				stocksToPredict = append(stocksToPredict, v)
+			}
+		}
+
+		// 并发调用 Python 预测
+		var mu sync.Mutex
+		eg2, _ := errgroup.WithContext(ctx)
+
+		for _, stock := range stocksToPredict {
+			stock := stock // 避免闭包问题
+			eg2.Go(func() error {
+				// 获取最近 30 天的股票数据
+				stockData, err := dao.GetStockDataLimit30(ctx, stock.TsCode)
+				if err != nil {
+					zap.S().Error("[Info] [GetStockDataLimit30] [err] = ", err.Error())
+					return err
+				}
+
+				// 排序数据，确保时间顺序正确
+				sort.Slice(stockData, func(i, j int) bool {
+					return stockData[i].TradeDate.Before(stockData[j].TradeDate)
+				})
+
+				// 调用 Python 进行预测
+				val, err := python.PythonPredictStock(stock.Id, stockData)
+				if err != nil {
+					zap.S().Error("[PredictStock] [PythonPredictStock] [err] = ", err.Error())
+					return err
+				}
+
+				// 加锁，确保多线程安全
+				mu.Lock()
+				resp.StockList = append(resp.StockList, &UserInfoData{
+					Id:      stock.Id,
+					Name:    stock.Name,
+					NextVal: val,
+				})
+				mu.Unlock()
+
+				return nil
+			})
+		}
+
+		// 等待所有 Python 预测任务完成
+		if err := eg2.Wait(); err != nil {
+			return err
+		}
+
+		return nil
 	})
+
+	eg.Go(func() error {
+		fundIdList := cast.ToIntSlice(fundResult)
+
+		fundInfos, err := dao.GetFundInfos(c, fundIdList)
+		if err != nil {
+			zap.S().Error("[Info] [GetFundInfos] [err] = ", err.Error())
+			return err
+		}
+
+		for _, fund := range fundInfos {
+			resp.FundList = append(resp.FundList, &UserInfoDataSimple{
+				Id:   fund.Id,
+				Name: fund.Name,
+			})
+		}
+
+		return nil
+	})
+
+	// 等待所有任务完成
+	if err := eg.Wait(); err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		return
+	}
+
+	util.SuccessResp(c, resp)
 }

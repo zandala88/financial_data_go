@@ -87,6 +87,14 @@ func GetStockInfo(ctx context.Context, id int) (*model.StockInfo, error) {
 	return &stockInfo, err
 }
 
+func GetStockInfos(ctx context.Context, ids []int) ([]*model.StockInfo, error) {
+	var stockInfos []*model.StockInfo
+	err := connector.GetDB().WithContext(ctx).Model(&model.StockInfo{}).
+		Where("f_id in ?", ids).Find(&stockInfos).Error
+
+	return stockInfos, err
+}
+
 func GetStockList(ctx context.Context, search string, isHs, exchange, market []string, page, pageSize int) ([]*model.StockInfo, int64, error) {
 	var stockList []*model.StockInfo
 	db := connector.GetDB().Model(&model.StockInfo{})
@@ -168,4 +176,9 @@ func SameIndustryList(ctx context.Context, industry string, id int) ([]*model.St
 	err := connector.GetDB().WithContext(ctx).
 		Model(&model.StockInfo{}).Where("f_industry = ?", industry).Where("f_id <> ?", id).Find(&stockList).Error
 	return stockList, err
+}
+
+type TsCodeAndClose struct {
+	TsCode string  `gorm:"column:f_ts_code"`
+	Close  float64 `gorm:"column:f_close"`
 }

@@ -118,10 +118,6 @@ func HTTPRouter() {
 		// 个人信息首页
 		auth.GET("/user/info", user.Info)
 
-		// 个人信息 - 股票关注列表
-
-		// 个人信息 - 基金关注列表
-
 		// 股票 - 关注（取消关注）
 		auth.POST("/stock/follow", stock.FollowStock)
 
