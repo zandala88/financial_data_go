@@ -1,6 +1,12 @@
 package server
 
 import (
+	"context"
+	"encoding/json"
+	"financia/public/db/connector"
+	"financia/server/tushare"
+	"financia/service/fut"
+	"financia/util"
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -15,10 +21,31 @@ func CronDailyWorker() {
 	}
 	c := cron.New(cron.WithLocation(location))
 
-	c.AddFunc("0 23 * * *", func() {
-		zap.S().Debugf("[CronDailyWorker] [start]")
+	c.AddFunc("0 0 * * *", func() {
 
-		//tushare.Daily(context.Background(), "")
+		ctx := context.Background()
+
+		resp := &fut.CalFutResp{
+			Sse:  make([]*tushare.FutTradeCalResp, 0),
+			Szse: make([]*tushare.FutTradeCalResp, 0),
+		}
+		resp.Sse, resp.Szse = tushare.FutTradeCal(ctx)
+
+		for i, v := range resp.Sse {
+			resp.Sse[i].CalDate = util.ConvertDateStrToTime(v.CalDate, util.TimeDateOnlyWithOutSep).Format(time.DateOnly)
+		}
+		for i, v := range resp.Szse {
+			resp.Szse[i].CalDate = util.ConvertDateStrToTime(v.CalDate, util.TimeDateOnlyWithOutSep).Format(time.DateOnly)
+		}
+		// 当天0点过期
+		exp := util.SecondsUntilMidnight()
+		rdbStr, _ := json.Marshal(resp)
+
+		rdb := connector.GetRedis().WithContext(ctx)
+		_, err := rdb.Set(ctx, "cal_fut", rdbStr, time.Duration(exp)*time.Second).Result()
+		if err != nil {
+			zap.S().Errorf("[CalFut] [rdb.Set] [err] = %s", err.Error())
+		}
 	})
 
 	c.Start()
