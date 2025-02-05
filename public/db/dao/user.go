@@ -16,6 +16,12 @@ func CreateUser(ctx context.Context, email, username, password string) error {
 	}).Error
 }
 
+func GetUser(ctx context.Context, userId int64) (*model.UserInfo, error) {
+	var user *model.UserInfo
+	err := connector.GetDB().WithContext(ctx).Where("f_id = ?", userId).First(&user).Error
+	return user, err
+}
+
 func GetUserId(ctx context.Context, email string) int64 {
 	var user *model.UserInfo
 	connector.GetDB().WithContext(ctx).Where("f_email = ?", email).First(&user)

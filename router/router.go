@@ -52,7 +52,7 @@ func HTTPRouter() {
 		v1.GET("/code", user.Code)
 	}
 
-	free := v1.Use()
+	free := v1.Use(middleware.AuthSet())
 	{
 		// 顶部tab
 		free.GET("/tab/list", common.GetTabList)
@@ -118,6 +118,15 @@ func HTTPRouter() {
 		// 个人信息首页
 		auth.GET("/user/info", user.Info)
 
+		// 个人信息 - 股票关注列表
+
+		// 个人信息 - 基金关注列表
+
+		// 股票 - 关注（取消关注）
+		auth.POST("/stock/follow", stock.FollowStock)
+
+		// 基金 - 关注（取消关注）
+		auth.POST("/fund/follow", fund.FollowFund)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

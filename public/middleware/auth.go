@@ -18,3 +18,14 @@ func AuthCheck() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func AuthSet() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("token")
+		userClaims, _ := util.VerifyJWT(token)
+		if userClaims != nil && userClaims.UserId != 0 {
+			c.Set("user_id", userClaims.UserId)
+		}
+		c.Next()
+	}
+}

@@ -9,8 +9,9 @@ type DataFundReq struct {
 }
 
 type DataFundResp struct {
-	Have bool              `json:"have"`
-	List []*DataFundSimple `json:"list"`
+	Follow bool              `json:"follow"`
+	Have   bool              `json:"have"`
+	List   []*DataFundSimple `json:"list"`
 }
 
 type DataFundSimple struct {
@@ -75,4 +76,9 @@ type ListFundSimple struct {
 type QueryFundResp struct {
 	FundTypeList   []string `json:"fundTypeList"`
 	InvestTypeList []string `json:"investTypeList"`
+}
+
+type FollowFundReq struct {
+	Id     int  `form:"id" binding:"required"`
+	Follow bool `form:"follow"`
 }

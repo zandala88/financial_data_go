@@ -27,3 +27,8 @@ type RegisterReq struct {
 type RegisterResp struct {
 	Token string `json:"token"`
 }
+
+type UserInfoResp struct {
+	Email    string `json:"email"`
+	UserName string `json:"username"`
+}

@@ -60,7 +60,7 @@ func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
 			PreClose:  cast.ToFloat64(item[6]),
 			Change:    cast.ToFloat64(item[7]),
 			PctChg:    cast.ToFloat64(item[8]),
-			Vol:       cast.ToInt64(item[9]),
+			Vol:       cast.ToFloat64(item[9]),
 			Amount:    cast.ToFloat64(item[10]),
 		})
 	}

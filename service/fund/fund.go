@@ -6,10 +6,13 @@ import (
 	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/dao"
+	"financia/public/db/model"
 	"financia/server/tushare"
 	"financia/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"sort"
 	"strings"
@@ -61,7 +64,7 @@ func DataFund(c *gin.Context) {
 			PreClose:  v.PreClose,
 			Change:    v.Change,
 			PctChg:    v.PctChg,
-			Vol:       v.Vol,
+			Vol:       cast.ToInt64(v.Vol),
 			Amount:    v.Amount,
 		})
 	}
@@ -79,9 +82,20 @@ func DataFund(c *gin.Context) {
 		}
 	}()
 
+	rdb := connector.GetRedis().WithContext(c)
+	userId := util.GetUid(c)
+	redisKey := fmt.Sprintf(public.RedisKeyFundFollow, userId)
+	follow, err := rdb.SIsMember(c, redisKey, req.Id).Result()
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[DataFund] [rdb.SIsMember] [err] = ", err.Error())
+		return
+	}
+
 	util.SuccessResp(c, &DataFundResp{
-		Have: true,
-		List: respList,
+		Follow: follow,
+		Have:   true,
+		List:   respList,
 	})
 }
 
@@ -196,6 +210,13 @@ func HaveFund(c *gin.Context) {
 			zap.S().Errorf("[Daily] [InsertFundData] [err] = %s", err.Error())
 			return
 		}
+		if have {
+			dao.UpdateFund(c, &model.FundInfo{
+				Id:   int64(req.Id),
+				Flag: 1,
+			})
+		}
+
 	}
 
 	util.SuccessResp(c, &HaveFundResp{
@@ -259,4 +280,46 @@ func QueryFund(c *gin.Context) {
 		FundTypeList:   fields["fund_type"],
 		InvestTypeList: fields["invest_type"],
 	})
+}
+
+func FollowFund(c *gin.Context) {
+	var req FollowFundReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[FollowFund] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
+
+	userId := util.GetUid(c)
+	rdb := connector.GetRedis().WithContext(c)
+	redisKey := fmt.Sprintf(public.RedisKeyFundFollow, userId)
+
+	exists, err := rdb.SIsMember(c, redisKey, req.Id).Result()
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[FollowFund] [rdb.SIsMember] [err] = ", err.Error())
+		return
+	}
+	if req.Follow == exists {
+		util.SuccessResp(c, nil)
+		return
+	}
+
+	if req.Follow {
+		_, err = rdb.SAdd(c, redisKey, req.Id).Result()
+		if err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Error("[FollowFund] [rdb.SAdd] [err] = ", err.Error())
+			return
+		}
+	} else {
+		_, err = rdb.SRem(c, redisKey, req.Id).Result()
+		if err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Error("[FollowFund] [rdb.SRem] [err] = ", err.Error())
+			return
+		}
+	}
+
+	util.SuccessResp(c, nil)
 }

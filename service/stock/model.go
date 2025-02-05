@@ -56,6 +56,7 @@ type InfoStockResp struct {
 	FullName string `json:"name"`
 	Industry string `json:"industry"`
 	Market   string `json:"market"`
+	Follow   bool   `json:"follow"`
 }
 
 type ListStockReq struct {
@@ -152,4 +153,9 @@ type PythonPredictResp struct {
 
 type PythonPredictRespData struct {
 	Val float64 `json:"val"`
+}
+
+type FollowStockReq struct {
+	Id     int  `form:"id" binding:"required"`
+	Follow bool `form:"follow"`
 }

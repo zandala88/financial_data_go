@@ -9,6 +9,8 @@ const (
 	RedisKeyFundVol         = "fund_vol"
 	RedisKeyGraphStock      = "graph_stock"
 	RedisKeyStockPredict    = "stock_predict:%d"
+	RedisKeyStockFollow     = "stock_follow:%d"
+	RedisKeyFundFollow      = "fund_follow:%d"
 )
 
 const (

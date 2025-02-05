@@ -223,10 +223,22 @@ func InfoStock(c *gin.Context) {
 		return
 	}
 
+	rdb := connector.GetRedis().WithContext(c)
+	userId := util.GetUid(c)
+	redisKey := fmt.Sprintf(public.RedisKeyStockFollow, userId)
+	zap.S().Debugf("[InfoStock] [redisKey] = %s", redisKey)
+	follow, err := rdb.SIsMember(c, redisKey, req.Id).Result()
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[InfoStock] [rdb.SIsMember] [err] = ", err.Error())
+		return
+	}
+
 	util.SuccessResp(c, &InfoStockResp{
 		FullName: info.FullName,
 		Industry: info.Industry,
 		Market:   info.Market,
+		Follow:   follow,
 	})
 }
 
@@ -373,14 +385,10 @@ func Top10HsgtStock(c *gin.Context) {
 		Sse:  make([]*tushare.FutTradeCalResp, 0),
 		Szse: make([]*tushare.FutTradeCalResp, 0),
 	}
-	err := json.Unmarshal([]byte(result), timeList)
-	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Errorf("[CalFut] [json.Unmarshal] [err] = %s", err.Error())
-	}
+	json.Unmarshal([]byte(result), timeList)
 
 	date := time.Now().Format(util.TimeDateOnlyWithOutSep)
-	now := time.Now()
+	now := time.Now().Add(time.Hour * -24)
 	for _, v := range timeList.Sse {
 		t := util.ConvertDateStrToTime(v.CalDate, time.DateOnly)
 		if t.After(now) {
@@ -491,4 +499,47 @@ func PredictStock(c *gin.Context) {
 		List: last7,
 		Val:  pyResp.Data.Val,
 	})
+}
+
+func FollowStock(c *gin.Context) {
+	var req FollowStockReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[FollowStock] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
+
+	userId := util.GetUid(c)
+	rdb := connector.GetRedis().WithContext(c)
+	redisKey := fmt.Sprintf(public.RedisKeyStockFollow, userId)
+
+	exists, err := rdb.SIsMember(c, redisKey, req.Id).Result()
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[FollowStock] [rdb.SIsMember] [err] = ", err.Error())
+		return
+	}
+	if req.Follow == exists {
+		util.SuccessResp(c, nil)
+		return
+	}
+
+	if req.Follow {
+		_, err = rdb.SAdd(c, redisKey, req.Id).Result()
+		zap.S().Debugf("[FollowStock] [rdb.SAdd] [err] = %v", err)
+		if err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Error("[FollowStock] [rdb.SAdd] [err] = ", err.Error())
+			return
+		}
+	} else {
+		_, err = rdb.SRem(c, redisKey, req.Id).Result()
+		if err != nil {
+			util.FailRespWithCode(c, util.InternalServerError)
+			zap.S().Error("[FollowStock] [rdb.SRem] [err] = ", err.Error())
+			return
+		}
+	}
+
+	util.SuccessResp(c, nil)
 }

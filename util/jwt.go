@@ -19,7 +19,7 @@ func GenerateJWT(Id int64) (string, error) {
 	c := MyClaims{
 		Id, // 自定义字段
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Duration(config.Configs.Auth.AccessExpire) * time.Second).Unix(), // 过期时间
+			ExpiresAt: time.Now().Add(time.Duration(config.Configs.Auth.AccessExpire) * time.Minute).Unix(), // 过期时间
 			Issuer:    "zandala",                                                                            // 签发人
 		},
 	}

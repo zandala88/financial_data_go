@@ -112,5 +112,16 @@ func Register(c *gin.Context) {
 }
 
 func Info(c *gin.Context) {
+	userId := util.GetUid(c)
+	user, err := dao.GetUser(c, userId)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[Info] [GetUserInfo] [err] = ", err.Error())
+		return
+	}
 
+	util.SuccessResp(c, &UserInfoResp{
+		Email:    user.Email,
+		UserName: user.Username,
+	})
 }

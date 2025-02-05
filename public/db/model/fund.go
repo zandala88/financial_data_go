@@ -38,7 +38,7 @@ type FundData struct {
 	PreClose  float64   `gorm:"type:decimal(10,2);column:f_pre_close" json:"preClose"`
 	Change    float64   `gorm:"type:decimal(10,2);column:f_change" json:"change"`
 	PctChg    float64   `gorm:"type:decimal(5,2);column:f_pct_chg" json:"pctChg"`
-	Vol       int64     `gorm:"type:bigint;column:f_vol" json:"vol"`
+	Vol       float64   `gorm:"type:bigint;column:f_vol" json:"vol"`
 	Amount    float64   `gorm:"type:decimal(20,2);column:f_amount" json:"amount"`
 }
 
