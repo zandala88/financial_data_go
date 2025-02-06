@@ -55,6 +55,17 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	user, err := dao.GetUser(c, userId)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Login] [GetUser] [err] = ", err.Error())
+		return
+	}
+
+	if public.GenerateMD5Hash(req.Password) != user.Password {
+		util.FailRespWithCodeAndZap(c, util.ReqDataError, "[Login] [GenerateMD5Hash] [err] = ", "密码错误")
+		return
+	}
+
 	token, err := util.GenerateJWT(userId)
 	if err != nil {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Login] [GenerateJWT] [err] = ", err.Error())
@@ -155,6 +166,11 @@ func Tip(c *gin.Context) {
 
 	if err := predict(c, userId, pResp); err != nil {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Info] [predict] [err] = ", err.Error())
+		return
+	}
+
+	if len(pResp.StockList) == 0 && len(pResp.FundList) == 0 {
+		util.SuccessResp(c, TipResp{Exists: false})
 		return
 	}
 
