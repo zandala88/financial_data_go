@@ -4,21 +4,18 @@ import (
 	"financia/public/db/dao"
 	"financia/util"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func DetailCompany(c *gin.Context) {
 	var req DetailCompanyReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[DetailCompany] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[DetailCompany] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
 	company, err := dao.GetCompany(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DetailCompany] [GetCompanyDetail] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DetailCompany] [GetCompany] [err] = ", err.Error())
 		return
 	}
 
@@ -41,17 +38,13 @@ func DetailCompany(c *gin.Context) {
 func ListCompany(c *gin.Context) {
 	var req ListCompanyReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[ListCompany] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[ListCompany] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
-	zap.S().Debugf("[ListCompany] [req] = %#v", req)
-
 	list, count, err := dao.GetCompanyList(c, req.Search, req.Province, req.Page, req.PageSize)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ListCompany] [GetCompanyList] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ListCompany] [GetCompanyList] [err] = ", err.Error())
 		return
 	}
 
@@ -81,8 +74,7 @@ func ListCompany(c *gin.Context) {
 func QueryCompany(c *gin.Context) {
 	dis, err := dao.ProvinceDis(c)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[QueryCompany] [ProvinceDis] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[QueryCompany] [ProvinceDis] [err] = ", err.Error())
 		return
 	}
 

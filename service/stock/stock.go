@@ -23,24 +23,19 @@ import (
 func DataStock(c *gin.Context) {
 	var req DataStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[DataStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[DataStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
-	zap.S().Debugf("[DataStock] [req] = %#v", req)
-
 	info, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataStock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataStock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	list, err := dao.GetStockData(c, info.TsCode, req.StartDate, req.EndDate)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataStock] [GetStockData] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataStock] [GetStockData] [err] = %s", err.Error())
 		return
 	}
 
@@ -94,16 +89,14 @@ func GraphStock(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, public.RedisKeyGraphStock).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[GraphStock] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphStock] [rdb.Get] [err] = %s", err.Error())
 		return
 	}
 
 	if errors.Is(err, redis.Nil) {
 		fields, err := dao.CountStockFields(c)
 		if err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Errorf("CountStockFields error: %s", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphStock] [CountStockFields] [err] = %s", err.Error())
 			return
 		}
 
@@ -117,7 +110,6 @@ func GraphStock(c *gin.Context) {
 			listStr, _ := json.Marshal(resp)
 			_, err := rdb.Set(c, public.RedisKeyGraphStock, listStr, 0).Result()
 			if err != nil {
-				util.FailRespWithCode(c, util.InternalServerError)
 				zap.S().Error("[GraphStock] [rdb.Set] [err] = ", err.Error())
 				return
 			}
@@ -129,8 +121,7 @@ func GraphStock(c *gin.Context) {
 
 	resp := &GraphStockResp{}
 	if err := json.Unmarshal([]byte(result), resp); err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[GraphStock] [json.Unmarshal] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphStock] [json.Unmarshal] [err] = %s", err.Error())
 		return
 	}
 
@@ -140,24 +131,19 @@ func GraphStock(c *gin.Context) {
 func HaveStock(c *gin.Context) {
 	var req HaveStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[DataStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[HaveStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
-	zap.S().Debugf("[DataStock] [req] = %#v", req)
-
 	info, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataStock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[HaveStock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	have, err := dao.CheckStockData(c, info.TsCode)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataStock] [GetStockData] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[HaveStock] [CheckStockData] [err] = %s", err.Error())
 		return
 	}
 
@@ -167,8 +153,7 @@ func HaveStock(c *gin.Context) {
 		})
 		have = len(data) > 0
 		if err := dao.InsertStockData(c, data); err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Errorf("[Daily] [InsertStockData] [err] = %s", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[HaveStock] [InsertStockData] [err] = %s", err.Error())
 			return
 		}
 	}
@@ -182,22 +167,19 @@ func HaveStock(c *gin.Context) {
 func IncomeStock(c *gin.Context) {
 	var req IncomeStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[IncomeStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[IncomeStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
 	stockInfo, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[IncomeStock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[IncomeStock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	incomeList := tushare.StockIncome(c, stockInfo.TsCode)
 	if incomeList == nil || len(incomeList) == 0 {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[IncomeStock] [StockIncome] [err] = ", "incomeList is nil")
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[IncomeStock] [StockIncome] [err] = %s", "incomeList is nil")
 		return
 	}
 
@@ -209,26 +191,22 @@ func IncomeStock(c *gin.Context) {
 func InfoStock(c *gin.Context) {
 	var req InfoStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[InfoStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[InfoStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
 	info, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[InfoStock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[InfoStock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	rdb := connector.GetRedis().WithContext(c)
 	userId := util.GetUid(c)
 	redisKey := fmt.Sprintf(public.RedisKeyStockFollow, userId)
-	zap.S().Debugf("[InfoStock] [redisKey] = %s", redisKey)
 	follow, err := rdb.SIsMember(c, redisKey, req.Id).Result()
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[InfoStock] [rdb.SIsMember] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[InfoStock] [rdb.SIsMember] [err] = %s", err.Error())
 		return
 	}
 
@@ -243,17 +221,13 @@ func InfoStock(c *gin.Context) {
 func ListStock(c *gin.Context) {
 	var req ListStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[ListStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[ListStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
-	zap.S().Debugf("[ListStock] [req] = %#v", req)
-
 	list, count, err := dao.GetStockList(c, req.Search, req.IsHs, req.Exchange, req.Market, req.Page, req.PageSize)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ListStock] [GetStockList] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ListStock] [GetStockList] [err] = %s", err.Error())
 		return
 	}
 
@@ -287,8 +261,7 @@ func ListStock(c *gin.Context) {
 func QueryStock(c *gin.Context) {
 	fields, err := dao.DistinctStockFields(c)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Errorf("DistinctStockFields error: %s", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[QueryStock] [DistinctStockFields] [err] = %s", err.Error())
 		return
 	}
 
@@ -302,22 +275,19 @@ func QueryStock(c *gin.Context) {
 func ForecastStock(c *gin.Context) {
 	var req ForecastStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[ForecastStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[ForecastStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
 	stockInfo, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ForecastStock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ForecastStock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	forecast := tushare.StockForecast(c, stockInfo.TsCode)
 	if forecast == nil || len(forecast) == 0 {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ForecastStock] [StockForecast] [err] = ", "forecast is nil")
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ForecastStock] [StockForecast] [err] = %s", "forecast is nil")
 		return
 	}
 
@@ -333,22 +303,19 @@ func ForecastStock(c *gin.Context) {
 func Top10Stock(c *gin.Context) {
 	var req Top10StockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[Top10Stock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[Top10Stock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
 	stockInfo, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[Top10Stock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Top10Stock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	top10 := tushare.StockHolderTop10(c, stockInfo.TsCode)
 	if top10 == nil || len(top10) == 0 {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[Top10Stock] [StockHolderTop10] [err] = ", "top10 is nil")
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Top10Stock] [StockHolderTop10] [err] = %s", "top10 is nil")
 		return
 	}
 
@@ -410,28 +377,24 @@ func Top10HsgtStock(c *gin.Context) {
 func PredictStock(c *gin.Context) {
 	var req PredictStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[PredictStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[PredictStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
 	stockInfo, err := dao.GetStockInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictStock] [GetStockInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictStock] [GetStockInfo] [err] = %s", err.Error())
 		return
 	}
 
 	stockData, err := dao.GetStockDataLimit30(c, stockInfo.TsCode)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictStock] [GetStockDataLimit30] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictStock] [GetStockDataLimit30] [err] = %s", err.Error())
 		return
 	}
 
 	if len(stockData) == 0 {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictStock] [GetStockDataLimit30] [err] = ", "stockData is nil")
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictStock] [GetStockDataLimit30] [err] = %s", "stockData is nil")
 		return
 	}
 
@@ -447,8 +410,7 @@ func PredictStock(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, fmt.Sprintf(public.RedisKeyStockPredict, req.Id)).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictStock] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictStock] [rdb.Get] [err] = %s", err.Error())
 		return
 	}
 	if !errors.Is(err, redis.Nil) {
@@ -461,8 +423,7 @@ func PredictStock(c *gin.Context) {
 
 	val, err := python.PythonPredictStock(req.Id, stockData)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictStock] [PythonPredictStock] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictStock] [PythonPredictStock] [err] = %s", err.Error())
 		return
 	}
 
@@ -475,8 +436,7 @@ func PredictStock(c *gin.Context) {
 func FollowStock(c *gin.Context) {
 	var req FollowStockReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[FollowStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[FollowStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
 
@@ -486,8 +446,7 @@ func FollowStock(c *gin.Context) {
 
 	exists, err := rdb.SIsMember(c, redisKey, req.Id).Result()
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[FollowStock] [rdb.SIsMember] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[FollowStock] [rdb.SIsMember] [err] = %s", err.Error())
 		return
 	}
 	if req.Follow == exists {
@@ -496,18 +455,13 @@ func FollowStock(c *gin.Context) {
 	}
 
 	if req.Follow {
-		_, err = rdb.SAdd(c, redisKey, req.Id).Result()
-		zap.S().Debugf("[FollowStock] [rdb.SAdd] [err] = %v", err)
-		if err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Error("[FollowStock] [rdb.SAdd] [err] = ", err.Error())
+		if _, err = rdb.SAdd(c, redisKey, req.Id).Result(); err != nil {
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[FollowStock] [rdb.SAdd] [err] = %s", err.Error())
 			return
 		}
 	} else {
-		_, err = rdb.SRem(c, redisKey, req.Id).Result()
-		if err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Error("[FollowStock] [rdb.SRem] [err] = ", err.Error())
+		if _, err = rdb.SRem(c, redisKey, req.Id).Result(); err != nil {
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[FollowStock] [rdb.SRem] [err] = %s", err.Error())
 			return
 		}
 	}

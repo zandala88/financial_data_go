@@ -1,6 +1,9 @@
 package util
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+)
 
 func SuccessResp(c *gin.Context, data interface{}) {
 	c.JSON(200, gin.H{
@@ -22,6 +25,11 @@ func FailRespWithCode(c *gin.Context, code int) {
 		"code": code,
 		"msg":  errMsg[code],
 	})
+}
+
+func FailRespWithCodeAndZap(c *gin.Context, code int, format, logStr string) {
+	FailRespWithCode(c, code)
+	zap.S().Error(format, logStr)
 }
 
 func GetErrorMessage(code int) string {

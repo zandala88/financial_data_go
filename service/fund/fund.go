@@ -23,24 +23,19 @@ import (
 func DataFund(c *gin.Context) {
 	var req DataFundReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[DataFund] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[DataFund] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
-	zap.S().Debugf("[DataFund] [req] = %#v", req)
-
 	info, err := dao.GetFundInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataFund] [GetFundInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataFund] [GetFundInfo] [err] = ", err.Error())
 		return
 	}
 
 	list, err := dao.GetFundData(c, info.TsCode, req.StartDate, req.EndDate)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataFund] [GetFundData] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataFund] [GetFundData] [err] = ", err.Error())
 		return
 	}
 
@@ -88,8 +83,7 @@ func DataFund(c *gin.Context) {
 	redisKey := fmt.Sprintf(public.RedisKeyFundFollow, userId)
 	follow, err := rdb.SIsMember(c, redisKey, req.Id).Result()
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataFund] [rdb.SIsMember] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataFund] [rdb.SIsMember] [err] = ", err.Error())
 		return
 	}
 
@@ -107,8 +101,7 @@ func GraphFund(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	radioResult, err := rdb.Get(c, public.RedisKeyFundRadio).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[GraphFund] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphFund] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 	if errors.Is(err, redis.Nil) {
@@ -116,9 +109,7 @@ func GraphFund(c *gin.Context) {
 
 		go func() {
 			listStr, _ := json.Marshal(radio)
-			_, err := rdb.Set(c, public.RedisKeyFundRadio, listStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
-			if err != nil {
-				util.FailRespWithCode(c, util.InternalServerError)
+			if _, err := rdb.Set(c, public.RedisKeyFundRadio, listStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result(); err != nil {
 				zap.S().Error("[GraphFund] [rdb.Set] [err] = ", err.Error())
 				return
 			}
@@ -128,8 +119,7 @@ func GraphFund(c *gin.Context) {
 	} else {
 		var radio []*tushare.FundSalesRatioResp
 		if err := json.Unmarshal([]byte(radioResult), &radio); err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Error("[GraphFund] [json.Unmarshal] [err] = ", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphFund] [json.Unmarshal] [err] = ", err.Error())
 			return
 		}
 		resp.Radio = radio
@@ -137,8 +127,7 @@ func GraphFund(c *gin.Context) {
 
 	volResult, err := rdb.Get(c, public.RedisKeyFundVol).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[GraphFund] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphFund] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 	if errors.Is(err, redis.Nil) {
@@ -157,9 +146,7 @@ func GraphFund(c *gin.Context) {
 
 		go func() {
 			listStr, _ := json.Marshal(vol)
-			_, err := rdb.Set(c, public.RedisKeyFundVol, listStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
-			if err != nil {
-				util.FailRespWithCode(c, util.InternalServerError)
+			if _, err := rdb.Set(c, public.RedisKeyFundVol, listStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result(); err != nil {
 				zap.S().Error("[GraphFund] [rdb.Set] [err] = ", err.Error())
 				return
 			}
@@ -169,8 +156,7 @@ func GraphFund(c *gin.Context) {
 	} else {
 		var vol []*tushare.FundSalesVolResp
 		if err := json.Unmarshal([]byte(volResult), &vol); err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Error("[GraphFund] [json.Unmarshal] [err] = ", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[GraphFund] [json.Unmarshal] [err] = ", err.Error())
 			return
 		}
 		resp.Inst = vol
@@ -182,22 +168,19 @@ func GraphFund(c *gin.Context) {
 func HaveFund(c *gin.Context) {
 	var req HaveFundReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[DataFund] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[DataFund] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
 	info, err := dao.GetFundInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataFund] [GetFundInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataFund] [GetFundInfo] [err] = ", err.Error())
 		return
 	}
 
 	have, err := dao.CheckFundData(c, info.TsCode)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[DataFund] [GetFundData] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataFund] [CheckFundData] [err] = ", err.Error())
 		return
 	}
 
@@ -207,8 +190,7 @@ func HaveFund(c *gin.Context) {
 		})
 		have = len(data) > 0
 		if err := dao.InsertFundData(c, data); err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Errorf("[Daily] [InsertFundData] [err] = %s", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DataFund] [InsertFundData] [err] = ", err.Error())
 			return
 		}
 		if have {
@@ -228,15 +210,13 @@ func HaveFund(c *gin.Context) {
 func ListFund(c *gin.Context) {
 	var req ListFundReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[ListStock] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[ListStock] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
 	list, count, err := dao.GetFundList(c, req.Search, req.FundType, req.InvestType, req.Page, req.PageSize)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ListStock] [GetStockList] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ListStock] [GetStockList] [err] = ", err.Error())
 		return
 	}
 
@@ -272,8 +252,7 @@ func ListFund(c *gin.Context) {
 func QueryFund(c *gin.Context) {
 	fields, err := dao.DistinctFundFields(c)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Errorf("DistinctFundFields error: %s", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[QueryFund] [DistinctFundFields] [err] = ", err.Error())
 		return
 	}
 
@@ -286,8 +265,7 @@ func QueryFund(c *gin.Context) {
 func FollowFund(c *gin.Context) {
 	var req FollowFundReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[FollowFund] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[FollowFund] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
@@ -297,8 +275,7 @@ func FollowFund(c *gin.Context) {
 
 	exists, err := rdb.SIsMember(c, redisKey, req.Id).Result()
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[FollowFund] [rdb.SIsMember] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[FollowFund] [rdb.SIsMember] [err] = ", err.Error())
 		return
 	}
 	if req.Follow == exists {
@@ -309,15 +286,13 @@ func FollowFund(c *gin.Context) {
 	if req.Follow {
 		_, err = rdb.SAdd(c, redisKey, req.Id).Result()
 		if err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Error("[FollowFund] [rdb.SAdd] [err] = ", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[FollowFund] [rdb.SAdd] [err] = ", err.Error())
 			return
 		}
 	} else {
 		_, err = rdb.SRem(c, redisKey, req.Id).Result()
 		if err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Error("[FollowFund] [rdb.SRem] [err] = ", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[FollowFund] [rdb.SRem] [err] = ", err.Error())
 			return
 		}
 	}
@@ -328,28 +303,24 @@ func FollowFund(c *gin.Context) {
 func PredictFund(c *gin.Context) {
 	var req PredictFundReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[PredictFund] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[PredictFund] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
 	fundInfo, err := dao.GetFundInfo(c, req.Id)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictFund] [GetFundInfo] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [GetFundInfo] [err] = ", err.Error())
 		return
 	}
 
 	fundData, err := dao.GetFundDataLimit30(c, fundInfo.TsCode)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictFund] [GetFundData] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [GetFundData] [err] = ", err.Error())
 		return
 	}
 
 	if len(fundData) == 0 {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictFund] [GetFundData] [err] = 数据为空")
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [GetFundData] [err] = 数据为空", "")
 		return
 	}
 
@@ -365,8 +336,7 @@ func PredictFund(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, fmt.Sprintf(public.RedisKeyFundPredict, req.Id)).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictFund] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 	if !errors.Is(err, redis.Nil) {
@@ -379,8 +349,7 @@ func PredictFund(c *gin.Context) {
 
 	val, err := python.PythonPredictFund(req.Id, fundData)
 	if err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[PredictFund] [PythonPredict] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [PythonPredict] [err] = ", err.Error())
 		return
 	}
 

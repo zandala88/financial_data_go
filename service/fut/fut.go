@@ -59,10 +59,8 @@ func CalFut(c *gin.Context) {
 			zap.S().Errorf("[CalFut] [rdb.Set] [err] = %s", err.Error())
 		}
 	} else {
-		err = json.Unmarshal([]byte(result), resp)
-		if err != nil {
-			util.FailRespWithCode(c, util.InternalServerError)
-			zap.S().Errorf("[CalFut] [json.Unmarshal] [err] = %s", err.Error())
+		if err = json.Unmarshal([]byte(result), resp); err != nil {
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[CalFut] [json.Unmarshal] [err] = %s", err.Error())
 			tuShareSet(c, resp)
 		}
 	}
@@ -73,8 +71,7 @@ func CalFut(c *gin.Context) {
 func DetailFut(c *gin.Context) {
 	var req DetailFutReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.ShouldBindJSONError)
-		zap.S().Error("[DetailFut] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[DetailFut] [ShouldBind] [err] = %s", err.Error())
 		return
 	}
 

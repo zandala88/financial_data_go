@@ -17,8 +17,7 @@ func ShiborEconomics(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, public.RedisKeyShiborEconomics).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ShiborEconomics] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ShiborEconomics] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 	if errors.Is(err, redis.Nil) {
@@ -29,10 +28,8 @@ func ShiborEconomics(c *gin.Context) {
 
 		go func() {
 			listStr, _ := json.Marshal(list)
-			_, err := rdb.Set(c, public.RedisKeyShiborEconomics, listStr, 0).Result()
-			if err != nil {
-				util.FailRespWithCode(c, util.InternalServerError)
-				zap.S().Error("[ShiborEconomics] [rdb.Set] [err] = ", err.Error())
+			if _, err := rdb.Set(c, public.RedisKeyShiborEconomics, listStr, 0).Result(); err != nil {
+				util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ShiborEconomics] [rdb.Set] [err] = ", err.Error())
 				return
 			}
 		}()
@@ -45,8 +42,7 @@ func ShiborEconomics(c *gin.Context) {
 
 	var list []*tushare.EconomicsShiborResp
 	if err := json.Unmarshal([]byte(result), &list); err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[ShiborEconomics] [json.Unmarshal] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ShiborEconomics] [json.Unmarshal] [err] = ", err.Error())
 		return
 	}
 
@@ -58,20 +54,17 @@ func ShiborEconomics(c *gin.Context) {
 func CnGdpEconomics(c *gin.Context) {
 	var req CnGdpEconomicsReq
 	if err := c.ShouldBind(&req); err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[CnGdpEconomics] [ShouldBindJSON] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[CnGdpEconomics] [ShouldBindJSON] [err] = ", err.Error())
 		return
 	}
 
 	if req.Year > public.CnGdpEconomicsEndYear || req.Year < public.CnGdpEconomicsStartYear {
-		util.FailRespWithCode(c, util.ReqDataError)
-		zap.S().Error("[CnGdpEconomics] [ShouldBindJSON] [err] = ", "year is invalid")
+		util.FailRespWithCodeAndZap(c, util.ReqDataError, "[CnGdpEconomics] [ShouldBindJSON] [err] = ", "year is invalid")
 		return
 	}
 
 	if req.Year == public.CnGdpEconomicsEndYear && req.Quarter == public.CnGdpEconomicsEndQuarter {
-		util.FailRespWithCode(c, util.ReqDataError)
-		zap.S().Error("[CnGdpEconomics] [ShouldBindJSON] [err] = ", "quarter is invalid")
+		util.FailRespWithCodeAndZap(c, util.ReqDataError, "[CnGdpEconomics] [ShouldBindJSON] [err] = ", "quarter is invalid")
 		return
 	}
 
@@ -80,8 +73,7 @@ func CnGdpEconomics(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, public.RedisKeyCnGdpEconomics+q).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[CnGdpEconomics] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[CnGdpEconomics] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 	if errors.Is(err, redis.Nil) {
@@ -89,9 +81,7 @@ func CnGdpEconomics(c *gin.Context) {
 
 		go func() {
 			listStr, _ := json.Marshal(list)
-			_, err := rdb.Set(c, public.RedisKeyCnGdpEconomics+q, listStr, 0).Result()
-			if err != nil {
-				util.FailRespWithCode(c, util.InternalServerError)
+			if _, err := rdb.Set(c, public.RedisKeyCnGdpEconomics+q, listStr, 0).Result(); err != nil {
 				zap.S().Error("[CnGdpEconomics] [rdb.Set] [err] = ", err.Error())
 				return
 			}
@@ -105,8 +95,7 @@ func CnGdpEconomics(c *gin.Context) {
 
 	var list []*tushare.EconomicsCnGDPResp
 	if err := json.Unmarshal([]byte(result), &list); err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[CnGdpEconomics] [json.Unmarshal] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[CnGdpEconomics] [json.Unmarshal] [err] = ", err.Error())
 		return
 	}
 
@@ -119,8 +108,7 @@ func CnCpiEconomics(c *gin.Context) {
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, public.RedisKeyCnCpiEconomics).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[CnCpiEconomics] [rdb.Get] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[CnCpiEconomics] [rdb.Get] [err] = ", err.Error())
 		return
 	}
 	if errors.Is(err, redis.Nil) {
@@ -133,7 +121,6 @@ func CnCpiEconomics(c *gin.Context) {
 			listStr, _ := json.Marshal(list)
 			_, err := rdb.Set(c, public.RedisKeyCnCpiEconomics, listStr, 0).Result()
 			if err != nil {
-				util.FailRespWithCode(c, util.InternalServerError)
 				zap.S().Error("[CnCpiEconomics] [rdb.Set] [err] = ", err.Error())
 				return
 			}
@@ -147,8 +134,7 @@ func CnCpiEconomics(c *gin.Context) {
 
 	var list []*tushare.EconomicsCnCPIResp
 	if err := json.Unmarshal([]byte(result), &list); err != nil {
-		util.FailRespWithCode(c, util.InternalServerError)
-		zap.S().Error("[CnCpiEconomics] [json.Unmarshal] [err] = ", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[CnCpiEconomics] [json.Unmarshal] [err] = ", err.Error())
 		return
 	}
 
