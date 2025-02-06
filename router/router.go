@@ -113,6 +113,9 @@ func HTTPRouter() {
 		free.GET("/economics/cn_gdp", economics.CnGdpEconomics)
 		// 宏观经济 - CPI
 		free.GET("/economics/cn_cpi", economics.CnCpiEconomics)
+
+		// 个人 - 信息提示
+		free.GET("/user/tip", user.Tip)
 	}
 
 	auth := v1.Use(middleware.AuthCheck())
@@ -125,6 +128,9 @@ func HTTPRouter() {
 
 		// 基金 - 关注（取消关注）
 		auth.POST("/fund/follow", fund.FollowFund)
+
+		// 个人 - 信息提示确认
+		free.POST("/user/tip/confirm", user.TipConfirm)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

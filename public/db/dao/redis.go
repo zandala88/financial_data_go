@@ -7,6 +7,8 @@ import (
 	"financia/public/db/connector"
 	"financia/public/db/model"
 	"fmt"
+	"github.com/spf13/cast"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -56,4 +58,22 @@ func GetAllYearData(ctx context.Context) ([]model.YearData, error) {
 	}
 
 	return allYearData, nil
+}
+
+func GetFollowList(c context.Context, userId int64) ([]int, []int, error) {
+	rdb := connector.GetRedis().WithContext(c)
+
+	pipe := rdb.Pipeline()
+	stockFollowCmd := pipe.SMembers(c, fmt.Sprintf(public.RedisKeyStockFollow, userId))
+	fundFollowCmd := pipe.SMembers(c, fmt.Sprintf(public.RedisKeyFundFollow, userId))
+
+	if _, err := pipe.Exec(c); err != nil {
+		zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
+		return nil, nil, err
+	}
+
+	stockResult, _ := stockFollowCmd.Result()
+	fundResult, _ := fundFollowCmd.Result()
+
+	return cast.ToIntSlice(stockResult), cast.ToIntSlice(fundResult), nil
 }

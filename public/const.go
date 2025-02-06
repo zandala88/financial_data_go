@@ -8,12 +8,16 @@ const (
 	RedisKeyFundRadio       = "fund_radio"
 	RedisKeyFundVol         = "fund_vol"
 	RedisKeyGraphStock      = "graph_stock"
-	RedisKeyStockPredict    = "stock_predict:%d"
-	RedisKeyStockToday      = "stock_today:%s"
-	RedisKeyStockFollow     = "stock_follow:%d"
-	RedisKeyFundPredict     = "fund_predict:%d"
-	RedisKeyFundFollow      = "fund_follow:%d"
-	RedisKeyFundToday       = "fund_today:%s"
+
+	RedisKeyStockPredict = "stock_predict:%d"
+	RedisKeyStockToday   = "stock_today:%s"
+	RedisKeyStockFollow  = "stock_follow:%d"
+
+	RedisKeyFundPredict = "fund_predict:%d"
+	RedisKeyFundFollow  = "fund_follow:%d"
+	RedisKeyFundToday   = "fund_today:%s"
+
+	RedisKeyTip = "tip:%d"
 )
 
 const (
@@ -50,4 +54,13 @@ const (
 const (
 	MarketStatusClose = iota
 	MarketStatusOpen
+)
+
+const (
+	EmptyUserId = 0
+)
+
+const (
+	RedisNotExists = 0
+	RedisExists    = 1
 )

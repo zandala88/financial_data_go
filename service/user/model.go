@@ -41,3 +41,17 @@ type UserInfoData struct {
 	Val     float64 `json:"val"`
 	NextVal float64 `json:"nextVal"`
 }
+
+type TipResp struct {
+	Exists    bool      `json:"exists"`
+	StockRise TipSimple `json:"stockRise,omitempty"`
+	StockFall TipSimple `json:"stockFall,omitempty"`
+	FundRise  TipSimple `json:"fundRise,omitempty"`
+	FundFall  TipSimple `json:"fundFall,omitempty"`
+}
+
+type TipSimple struct {
+	Name  string  `json:"name"`
+	Val   float64 `json:"val"`
+	Scope float64 `json:"scope"`
+}

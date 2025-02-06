@@ -5,18 +5,13 @@ import (
 	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/dao"
-	"financia/public/db/model"
 	"financia/server"
-	"financia/server/python"
 	"financia/util"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/spf13/cast"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-	"sort"
-	"sync"
+	"math"
+	"time"
 )
 
 // Code 获取验证码
@@ -123,202 +118,118 @@ func Info(c *gin.Context) {
 		FundList:  make([]*UserInfoData, 0),
 	}
 
-	rdb := connector.GetRedis().WithContext(c)
-	eg, ctx := errgroup.WithContext(c)
-
-	pipe := rdb.Pipeline()
-	stockFollowCmd := pipe.SMembers(ctx, fmt.Sprintf(public.RedisKeyStockFollow, userId))
-	fundFollowCmd := pipe.SMembers(ctx, fmt.Sprintf(public.RedisKeyFundFollow, userId))
-
-	if _, err := pipe.Exec(ctx); err != nil {
-		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Info] [Pipeline] [err] = ", err.Error())
-		return
-	}
-
-	stockResult, _ := stockFollowCmd.Result()
-	fundResult, _ := fundFollowCmd.Result()
-
-	eg.Go(func() error {
-		// 将股票关注列表转换为 int 列表
-		stockIdList := cast.ToIntSlice(stockResult)
-		if len(stockIdList) == 0 {
-			return nil
-		}
-
-		// 获取股票信息
-		stockInfos, err := dao.GetStockInfos(c, stockIdList)
-		if err != nil {
-			zap.S().Error("[Info] [GetStockInfos] [err] = ", err.Error())
-			return err
-		}
-
-		// 组合 Redis Key
-		predictKeys := make([]string, 0, len(stockInfos))
-		for _, v := range stockInfos {
-			predictKeys = append(predictKeys, fmt.Sprintf(public.RedisKeyStockPredict, v.Id))
-		}
-		pipe = rdb.Pipeline()
-		predictCmd := pipe.MGet(ctx, predictKeys...)
-		if _, err := pipe.Exec(ctx); err != nil && !errors.Is(err, redis.Nil) {
-			zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
-			return err
-		}
-		predictResults, _ := predictCmd.Result()
-
-		// 需要调用 Python 预测的股票
-		var stocksToPredict []*model.StockInfo
-
-		for i, v := range stockInfos {
-			if predictResults[i] != nil {
-				result, _ := rdb.Get(c, fmt.Sprintf(public.RedisKeyStockToday, v.TsCode)).Result()
-				// 直接使用 Redis 预测值
-				resp.StockList = append(resp.StockList, &UserInfoData{
-					Id:      v.Id,
-					Name:    v.Name,
-					Val:     cast.ToFloat64(result),
-					NextVal: cast.ToFloat64(predictResults[i]), // Redis 缓存预测值
-				})
-			} else {
-				// 需要进行 Python 预测
-				stocksToPredict = append(stocksToPredict, v)
-			}
-		}
-
-		// 并发调用 Python 预测
-		var mu sync.Mutex
-		eg2, _ := errgroup.WithContext(ctx)
-
-		for _, stock := range stocksToPredict {
-			stock := stock // 避免闭包问题
-			eg2.Go(func() error {
-				// 获取最近 30 天的股票数据
-				stockData, err := dao.GetStockDataLimit30(ctx, stock.TsCode)
-				if err != nil {
-					zap.S().Error("[Info] [GetStockDataLimit30] [err] = ", err.Error())
-					return err
-				}
-
-				// 排序数据，确保时间顺序正确
-				sort.Slice(stockData, func(i, j int) bool {
-					return stockData[i].TradeDate.Before(stockData[j].TradeDate)
-				})
-
-				// 调用 Python 进行预测
-				val, err := python.PythonPredictStock(stock.Id, stockData)
-				if err != nil {
-					zap.S().Error("[PredictStock] [PythonPredictStock] [err] = ", err.Error())
-					return err
-				}
-
-				// 加锁，确保多线程安全
-				mu.Lock()
-				resp.StockList = append(resp.StockList, &UserInfoData{
-					Id:      stock.Id,
-					Name:    stock.Name,
-					Val:     stockData[len(stockData)-1].Close,
-					NextVal: val,
-				})
-				mu.Unlock()
-
-				return nil
-			})
-		}
-
-		// 等待所有 Python 预测任务完成
-		if err := eg2.Wait(); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	eg.Go(func() error {
-		fundIdList := cast.ToIntSlice(fundResult)
-		if len(fundIdList) == 0 {
-			return nil
-		}
-
-		fundInfos, err := dao.GetFundInfos(c, fundIdList)
-		if err != nil {
-			zap.S().Error("[Info] [GetFundInfos] [err] = ", err.Error())
-			return err
-		}
-
-		predictKeys := make([]string, 0, len(fundInfos))
-		for _, v := range fundInfos {
-			predictKeys = append(predictKeys, fmt.Sprintf(public.RedisKeyFundPredict, v.Id))
-		}
-		pipe = rdb.Pipeline()
-		predictCmd := pipe.MGet(ctx, predictKeys...)
-		if _, err := pipe.Exec(ctx); err != nil && !errors.Is(err, redis.Nil) {
-			zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
-			return err
-		}
-		predictResults, _ := predictCmd.Result()
-
-		var fundsToPredict []*model.FundInfo
-
-		for i, v := range fundInfos {
-			if predictResults[i] != nil {
-				result, _ := rdb.Get(c, fmt.Sprintf(public.RedisKeyFundToday, v.TsCode)).Result()
-				resp.FundList = append(resp.FundList, &UserInfoData{
-					Id:      int(v.Id),
-					Name:    v.Name,
-					Val:     cast.ToFloat64(result),
-					NextVal: cast.ToFloat64(predictResults[i]),
-				})
-			} else {
-				fundsToPredict = append(fundsToPredict, v)
-			}
-		}
-
-		var mu sync.Mutex
-		eg2, _ := errgroup.WithContext(ctx)
-
-		for _, fund := range fundsToPredict {
-			fund := fund
-			eg2.Go(func() error {
-				fundData, err := dao.GetFundDataLimit30(ctx, fund.TsCode)
-				if err != nil {
-					zap.S().Error("[Info] [GetFundDataLimit30] [err] = ", err.Error())
-					return err
-				}
-
-				sort.Slice(fundData, func(i, j int) bool {
-					return fundData[i].TradeDate.Before(fundData[j].TradeDate)
-				})
-
-				val, err := python.PythonPredictFund(int(fund.Id), fundData)
-				if err != nil {
-					zap.S().Error("[PredictFund] [PythonPredictFund] [err] = ", err.Error())
-					return err
-				}
-
-				mu.Lock()
-				resp.FundList = append(resp.FundList, &UserInfoData{
-					Id:      int(fund.Id),
-					Name:    fund.Name,
-					Val:     fundData[len(fundData)-1].Close,
-					NextVal: val,
-				})
-				mu.Unlock()
-
-				return nil
-			})
-		}
-
-		if err := eg2.Wait(); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	// 等待所有任务完成
-	if err := eg.Wait(); err != nil {
-		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Info] [Wait] [err] = ", err.Error())
+	if err := predict(c, userId, resp); err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Info] [predict] [err] = ", err.Error())
 		return
 	}
 
 	util.SuccessResp(c, resp)
+}
+
+func Tip(c *gin.Context) {
+	// 是否登陆了
+	userId := util.GetUid(c)
+	if userId == public.EmptyUserId {
+		util.SuccessResp(c, TipResp{Exists: false})
+		return
+	}
+
+	// 是否已经不再提醒了
+	key := fmt.Sprintf(public.RedisKeyTip, userId)
+	rdb := connector.GetRedis().WithContext(c)
+	exists, err := rdb.Exists(c, key).Result()
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Tip] [Exists] [err] = ", err.Error())
+		return
+	}
+	if exists == public.RedisExists {
+		util.SuccessResp(c, TipResp{Exists: false})
+		return
+	}
+
+	// 获取提示信息
+	pResp := &UserInfoResp{
+		StockList: make([]*UserInfoData, 0),
+		FundList:  make([]*UserInfoData, 0),
+	}
+
+	if err := predict(c, userId, pResp); err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[Info] [predict] [err] = ", err.Error())
+		return
+	}
+
+	var (
+		stockRise TipSimple
+		stockFall TipSimple
+		fundRise  TipSimple
+		fundFall  TipSimple
+	)
+
+	for _, v := range pResp.StockList {
+		if v.NextVal == 0 {
+			continue
+		}
+		if v.NextVal > v.Val {
+			if stockRise.Val == 0 || stockRise.Scope < 100*(v.NextVal-v.Val)/v.Val {
+				stockRise = TipSimple{
+					Name:  v.Name,
+					Val:   v.NextVal,
+					Scope: math.Floor((v.NextVal-v.Val)/v.Val*10000) / 100,
+				}
+			}
+		} else {
+			if stockFall.Val == 0 || stockFall.Scope > 100*(v.NextVal-v.Val)/v.Val {
+				stockFall = TipSimple{
+					Name:  v.Name,
+					Val:   v.NextVal,
+					Scope: math.Floor((v.NextVal-v.Val)/v.Val*10000) / 100,
+				}
+			}
+		}
+	}
+
+	for _, v := range pResp.FundList {
+		if v.NextVal == 0 {
+			continue
+		}
+		if v.NextVal > v.Val {
+			if fundRise.Val == 0 || fundRise.Scope < 100*(v.NextVal-v.Val)/v.Val {
+				fundRise = TipSimple{
+					Name:  v.Name,
+					Val:   v.NextVal,
+					Scope: math.Floor((v.NextVal-v.Val)/v.Val*10000) / 100,
+				}
+			}
+		} else {
+			if fundFall.Val == 0 || fundFall.Scope > 100*(v.NextVal-v.Val)/v.Val {
+				fundFall = TipSimple{
+					Name:  v.Name,
+					Val:   v.NextVal,
+					Scope: math.Floor((v.NextVal-v.Val)/v.Val*10000) / 100,
+				}
+			}
+		}
+	}
+
+	util.SuccessResp(c, TipResp{
+		Exists:    true,
+		StockRise: stockRise,
+		StockFall: stockFall,
+		FundRise:  fundRise,
+		FundFall:  fundFall,
+	})
+}
+
+func TipConfirm(c *gin.Context) {
+	userId := util.GetUid(c)
+	// 设置不再提醒
+	key := fmt.Sprintf(public.RedisKeyTip, userId)
+	rdb := connector.GetRedis().WithContext(c)
+	_, err := rdb.Set(c, key, 1, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[TipConfirm] [Set] [err] = ", err.Error())
+		return
+	}
+
+	util.SuccessResp(c, nil)
 }
