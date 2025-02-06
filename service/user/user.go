@@ -132,7 +132,7 @@ func Info(c *gin.Context) {
 		Email:     user.Email,
 		UserName:  user.Username,
 		StockList: make([]*UserInfoData, 0),
-		FundList:  make([]*UserInfoDataSimple, 0),
+		FundList:  make([]*UserInfoData, 0),
 	}
 
 	rdb := connector.GetRedis().WithContext(c)
@@ -152,26 +152,30 @@ func Info(c *gin.Context) {
 	fundResult, _ := fundFollowCmd.Result()
 
 	eg.Go(func() error {
+		// 将股票关注列表转换为 int 列表
 		stockIdList := cast.ToIntSlice(stockResult)
+		if len(stockIdList) == 0 {
+			return nil
+		}
 
+		// 获取股票信息
 		stockInfos, err := dao.GetStockInfos(c, stockIdList)
 		if err != nil {
 			zap.S().Error("[Info] [GetStockInfos] [err] = ", err.Error())
 			return err
 		}
 
+		// 组合 Redis Key
 		predictKeys := make([]string, 0, len(stockInfos))
 		for _, v := range stockInfos {
 			predictKeys = append(predictKeys, fmt.Sprintf(public.RedisKeyStockPredict, v.Id))
 		}
-
 		pipe = rdb.Pipeline()
 		predictCmd := pipe.MGet(ctx, predictKeys...)
 		if _, err := pipe.Exec(ctx); err != nil && !errors.Is(err, redis.Nil) {
 			zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
 			return err
 		}
-
 		predictResults, _ := predictCmd.Result()
 
 		// 需要调用 Python 预测的股票
@@ -179,10 +183,12 @@ func Info(c *gin.Context) {
 
 		for i, v := range stockInfos {
 			if predictResults[i] != nil {
+				result, _ := rdb.Get(c, fmt.Sprintf(public.RedisKeyStockToday, v.TsCode)).Result()
 				// 直接使用 Redis 预测值
 				resp.StockList = append(resp.StockList, &UserInfoData{
 					Id:      v.Id,
 					Name:    v.Name,
+					Val:     cast.ToFloat64(result),
 					NextVal: cast.ToFloat64(predictResults[i]), // Redis 缓存预测值
 				})
 			} else {
@@ -222,6 +228,7 @@ func Info(c *gin.Context) {
 				resp.StockList = append(resp.StockList, &UserInfoData{
 					Id:      stock.Id,
 					Name:    stock.Name,
+					Val:     stockData[len(stockData)-1].Close,
 					NextVal: val,
 				})
 				mu.Unlock()
@@ -240,6 +247,9 @@ func Info(c *gin.Context) {
 
 	eg.Go(func() error {
 		fundIdList := cast.ToIntSlice(fundResult)
+		if len(fundIdList) == 0 {
+			return nil
+		}
 
 		fundInfos, err := dao.GetFundInfos(c, fundIdList)
 		if err != nil {
@@ -247,11 +257,71 @@ func Info(c *gin.Context) {
 			return err
 		}
 
-		for _, fund := range fundInfos {
-			resp.FundList = append(resp.FundList, &UserInfoDataSimple{
-				Id:   fund.Id,
-				Name: fund.Name,
+		predictKeys := make([]string, 0, len(fundInfos))
+		for _, v := range fundInfos {
+			predictKeys = append(predictKeys, fmt.Sprintf(public.RedisKeyFundPredict, v.Id))
+		}
+		pipe = rdb.Pipeline()
+		predictCmd := pipe.MGet(ctx, predictKeys...)
+		if _, err := pipe.Exec(ctx); err != nil && !errors.Is(err, redis.Nil) {
+			zap.S().Error("[Info] [Pipeline] [err] = ", err.Error())
+			return err
+		}
+		predictResults, _ := predictCmd.Result()
+
+		var fundsToPredict []*model.FundInfo
+
+		for i, v := range fundInfos {
+			if predictResults[i] != nil {
+				result, _ := rdb.Get(c, fmt.Sprintf(public.RedisKeyFundToday, v.TsCode)).Result()
+				resp.FundList = append(resp.FundList, &UserInfoData{
+					Id:      int(v.Id),
+					Name:    v.Name,
+					Val:     cast.ToFloat64(result),
+					NextVal: cast.ToFloat64(predictResults[i]),
+				})
+			} else {
+				fundsToPredict = append(fundsToPredict, v)
+			}
+		}
+
+		var mu sync.Mutex
+		eg2, _ := errgroup.WithContext(ctx)
+
+		for _, fund := range fundsToPredict {
+			fund := fund
+			eg2.Go(func() error {
+				fundData, err := dao.GetFundDataLimit30(ctx, fund.TsCode)
+				if err != nil {
+					zap.S().Error("[Info] [GetFundDataLimit30] [err] = ", err.Error())
+					return err
+				}
+
+				sort.Slice(fundData, func(i, j int) bool {
+					return fundData[i].TradeDate.Before(fundData[j].TradeDate)
+				})
+
+				val, err := python.PythonPredictFund(int(fund.Id), fundData)
+				if err != nil {
+					zap.S().Error("[PredictFund] [PythonPredictFund] [err] = ", err.Error())
+					return err
+				}
+
+				mu.Lock()
+				resp.FundList = append(resp.FundList, &UserInfoData{
+					Id:      int(fund.Id),
+					Name:    fund.Name,
+					Val:     fundData[len(fundData)-1].Close,
+					NextVal: val,
+				})
+				mu.Unlock()
+
+				return nil
 			})
+		}
+
+		if err := eg2.Wait(); err != nil {
+			return err
 		}
 
 		return nil

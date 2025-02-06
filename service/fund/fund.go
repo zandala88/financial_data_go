@@ -377,19 +377,7 @@ func PredictFund(c *gin.Context) {
 		return
 	}
 
-	var data []*model.StockData
-	for _, v := range fundData {
-		data = append(data, &model.StockData{
-			TradeDate: v.TradeDate,
-			Open:      v.Open,
-			High:      v.High,
-			Low:       v.Low,
-			Close:     v.Close,
-			Vol:       0,
-		})
-	}
-
-	val, err := python.PythonPredictStock(req.Id, data)
+	val, err := python.PythonPredictFund(req.Id, fundData)
 	if err != nil {
 		util.FailRespWithCode(c, util.InternalServerError)
 		zap.S().Error("[PredictFund] [PythonPredict] [err] = ", err.Error())

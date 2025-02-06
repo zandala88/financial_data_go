@@ -29,19 +29,15 @@ type RegisterResp struct {
 }
 
 type UserInfoResp struct {
-	Email     string                `json:"email"`
-	UserName  string                `json:"username"`
-	StockList []*UserInfoData       `json:"stockList"`
-	FundList  []*UserInfoDataSimple `json:"fundList"`
+	Email     string          `json:"email"`
+	UserName  string          `json:"username"`
+	StockList []*UserInfoData `json:"stockList"`
+	FundList  []*UserInfoData `json:"fundList"`
 }
 
 type UserInfoData struct {
 	Id      int     `json:"id"`
 	Name    string  `json:"name"`
+	Val     float64 `json:"val"`
 	NextVal float64 `json:"nextVal"`
-}
-
-type UserInfoDataSimple struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
 }
