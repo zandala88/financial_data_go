@@ -38,7 +38,7 @@ func HTTPRouter() {
 	})
 
 	// 将 CORS 中间件应用于所有路由
-	r.Use(corsMiddleware)
+	r.Use(corsMiddleware, middleware.LoggerMiddleware())
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("date", vaildator.DateValidator)
