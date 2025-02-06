@@ -97,6 +97,8 @@ func HTTPRouter() {
 		free.GET("/fund/data", fund.DataFund)
 		// 公募基金 - 首页图表
 		free.GET("/fund/graph", fund.GraphFund)
+		// 公募基金 - 预测数据
+		free.GET("/fund/predict", fund.PredictFund)
 
 		// 期货 - 筛选参数
 		free.GET("/fut/query", fut.QueryFut)

@@ -82,3 +82,12 @@ type FollowFundReq struct {
 	Id     int  `form:"id" binding:"required"`
 	Follow bool `form:"follow"`
 }
+
+type PredictFundReq struct {
+	Id int `form:"id" binding:"required"`
+}
+
+type PredictFundResp struct {
+	List []float64 `json:"list"`
+	Val  float64   `json:"val"`
+}

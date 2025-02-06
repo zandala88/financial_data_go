@@ -7,6 +7,7 @@ import (
 	"financia/public/db/connector"
 	"financia/public/db/dao"
 	"financia/public/db/model"
+	"financia/server/python"
 	"financia/server/tushare"
 	"financia/util"
 	"fmt"
@@ -322,4 +323,81 @@ func FollowFund(c *gin.Context) {
 	}
 
 	util.SuccessResp(c, nil)
+}
+
+func PredictFund(c *gin.Context) {
+	var req PredictFundReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCode(c, util.ShouldBindJSONError)
+		zap.S().Error("[PredictFund] [ShouldBindJSON] [err] = ", err.Error())
+		return
+	}
+
+	fundInfo, err := dao.GetFundInfo(c, req.Id)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictFund] [GetFundInfo] [err] = ", err.Error())
+		return
+	}
+
+	fundData, err := dao.GetFundDataLimit30(c, fundInfo.TsCode)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictFund] [GetFundData] [err] = ", err.Error())
+		return
+	}
+
+	if len(fundData) == 0 {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictFund] [GetFundData] [err] = 数据为空")
+		return
+	}
+
+	sort.Slice(fundData, func(i, j int) bool {
+		return fundData[i].TradeDate.Before(fundData[j].TradeDate)
+	})
+
+	last7 := make([]float64, 0, 7)
+	for i := range fundData[len(fundData)-7:] {
+		last7 = append(last7, fundData[i].Close)
+	}
+
+	rdb := connector.GetRedis().WithContext(c)
+	result, err := rdb.Get(c, fmt.Sprintf(public.RedisKeyFundPredict, req.Id)).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictFund] [rdb.Get] [err] = ", err.Error())
+		return
+	}
+	if !errors.Is(err, redis.Nil) {
+		util.SuccessResp(c, &PredictFundResp{
+			List: last7,
+			Val:  cast.ToFloat64(result),
+		})
+		return
+	}
+
+	var data []*model.StockData
+	for _, v := range fundData {
+		data = append(data, &model.StockData{
+			TradeDate: v.TradeDate,
+			Open:      v.Open,
+			High:      v.High,
+			Low:       v.Low,
+			Close:     v.Close,
+			Vol:       0,
+		})
+	}
+
+	val, err := python.PythonPredictStock(req.Id, data)
+	if err != nil {
+		util.FailRespWithCode(c, util.InternalServerError)
+		zap.S().Error("[PredictFund] [PythonPredict] [err] = ", err.Error())
+		return
+	}
+
+	util.SuccessResp(c, &PredictFundResp{
+		List: last7,
+		Val:  val,
+	})
 }

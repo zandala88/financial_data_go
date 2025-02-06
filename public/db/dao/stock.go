@@ -2,10 +2,13 @@ package dao
 
 import (
 	"context"
+	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/model"
+	"financia/util"
 	"fmt"
 	"gorm.io/gorm"
+	"time"
 )
 
 func DistinctStockFields(ctx context.Context) (map[string][]string, error) {
@@ -132,6 +135,9 @@ func GetStockDataLimit30(ctx context.Context, tsCode string) ([]*model.StockData
 	err := connector.GetDB().WithContext(ctx).
 		Raw("SELECT * FROM t_stock_data WHERE f_ts_code = ? order by f_trade_date desc limit 31", tsCode).
 		Scan(&stockData).Error
+
+	rdb := connector.GetRedis().WithContext(ctx)
+	rdb.Set(ctx, fmt.Sprintf(public.RedisKeyStockToday, tsCode), stockData[0].Close, time.Duration(util.SecondsUntilMidnight())*time.Second)
 
 	return stockData, err
 }

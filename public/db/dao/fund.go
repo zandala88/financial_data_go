@@ -2,8 +2,12 @@ package dao
 
 import (
 	"context"
+	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/model"
+	"financia/util"
+	"fmt"
+	"time"
 )
 
 // DistinctFundFields 获取基金字段
@@ -126,11 +130,14 @@ func GetFundData(ctx context.Context, tsCode, start, end string) ([]*model.FundD
 	return fundData, err
 }
 
-func GetFundDataLimit1(ctx context.Context, tsCode string) (model.FundData, error) {
-	var fundData model.FundData
+func GetFundDataLimit30(ctx context.Context, tsCode string) ([]*model.FundData, error) {
+	var fundData []*model.FundData
 	err := connector.GetDB().WithContext(ctx).
-		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? order by f_trade_date desc limit 1", tsCode).
+		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? order by f_trade_date desc limit 31", tsCode).
 		Scan(&fundData).Error
+
+	rdb := connector.GetRedis().WithContext(ctx)
+	rdb.Set(ctx, fmt.Sprintf(public.RedisKeyFundToday, tsCode), fundData[0].Close, time.Duration(util.SecondsUntilMidnight())*time.Second)
 
 	return fundData, err
 }
