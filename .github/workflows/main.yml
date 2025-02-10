@@ -8,10 +8,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - name: Add SSH Key
+      run: |
+        echo "${{ secrets.ACCESS_TOKEN }}" > deploy_key.pem
+        chmod 600 deploy_key.pem
+          
+    - name: Run deployment script over SSH
+      uses: appleboy/ssh-action@master
       with:
-        go-version: '1.23'
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key_path: deploy_key.pem
+          script_stop: true
+          script: |
+            sudo su bash -c'
+            cd ${{secrets.TARGET}}
+            git pull
+            go mod vendor
+            ./nohupRun.sh'
 
-    - name: Build
-      run: go build -v ./...
+    - name: Cleanup
+      run: rm -f deploy_key.pem
+
