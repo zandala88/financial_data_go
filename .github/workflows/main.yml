@@ -13,17 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
-      - name: Check Secrets
-        run: |
-          echo "SSH_HOST is set"
-          echo "SSH_USER is set"
-          echo "SSH_PASS is set (hidden)"
-          echo "SSH_KEY is set (hidden)"
-        env:
-          SSH_HOST: ${{ secrets.REMOTE_HOST }}
-          SSH_USER: ${{ secrets.REMOTE_USER }}
-          SSH_PASS: ${{ secrets.SHH_PASSWORD }}
-          SSH_KEY: ${{ secrets.ACCESS_TOKEN }}
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
           
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
