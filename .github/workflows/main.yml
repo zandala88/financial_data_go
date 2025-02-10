@@ -13,16 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.ACCESS_TOKEN }}
-          key: ${{ secrets.SSH_KEY }}
-          port: 22  # 服务器 SSH 端口
-          script: |
-            cd /root/project/financia_data_go  # 切换到你的项目目录
-            git pull
-            go mod vendor
-            ./nohupRun.sh
+      - name: test
+        run: |
+          echo ${{ secrets.REMOTE_HOST }}
+          
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.REMOTE_HOST }}
+      #     username: ${{ secrets.ACCESS_TOKEN }}
+      #     key: ${{ secrets.SSH_KEY }}
+      #     port: 22  # 服务器 SSH 端口
+      #     script: |
+      #       cd /root/project/financia_data_go  # 切换到你的项目目录
+      #       git pull
+      #       go mod vendor
+      #       ./nohupRun.sh
 
