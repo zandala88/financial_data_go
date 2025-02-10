@@ -1,11 +1,6 @@
 name: go_ci
 
-on: 
-  push: 
-    branches:
-    - master
-    paths:
-    - ./
+on: [push]
 
 jobs:
   build:
