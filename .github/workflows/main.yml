@@ -20,16 +20,16 @@ jobs:
           echo "SSH_PASS is set (hidden)"
           echo "SSH_KEY is set (hidden)"
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PASS: ${{ secrets.SSH_PASS }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.REMOTE_HOST }}
+          SSH_USER: ${{ secrets.REMOTE_USER }}
+          SSH_PASS: ${{ secrets.SHH_PASSWORD }}
+          SSH_KEY: ${{ secrets.ACCESS_TOKEN }}
           
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.ACCESS_TOKEN }}
+          username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.SHH_PASSWORD}}
           port: 22  # 服务器 SSH 端口
           script: |
