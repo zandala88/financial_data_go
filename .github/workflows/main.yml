@@ -12,7 +12,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        
+      - name: Check Secrets
+        run: |
+          echo "SSH_HOST is set"
+          echo "SSH_USER is set"
+          echo "SSH_PASS is set (hidden)"
+          echo "SSH_KEY is set (hidden)"
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PASS: ${{ secrets.SSH_PASS }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
