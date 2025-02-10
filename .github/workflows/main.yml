@@ -26,6 +26,8 @@ jobs:
           password: ${{ secrets.SHH_PASSWORD}}
           port: 22  # 服务器 SSH 端口
           script: |
+            which go
+            go version
             cd /root/project/financia_data_go  # 切换到你的项目目录
             git pull
             go mod vendor
