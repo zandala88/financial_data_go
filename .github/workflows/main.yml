@@ -23,6 +23,9 @@ jobs:
           port: 22  # 服务器 SSH 端口
           script: |
             source ~/.bashrc
+            export GOROOT=/usr/local/go
+            export GOPATH=/go
+            export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
             go version
             cd /root/project/financia_data_go  # 切换到你的项目目录
             git pull
