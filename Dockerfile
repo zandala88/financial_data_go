@@ -8,7 +8,7 @@ RUN go env -w GOPROXY=https://goproxy.cn,direct
 
 RUN go mod vendor && go build -o main .
 
-FROM alpha:lastet
+FROM alpine:latest
 
 WORKDIR /app
 
