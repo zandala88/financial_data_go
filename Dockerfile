@@ -10,7 +10,7 @@ RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod tidy && go mod vendor && go build -o main .
 
 # 第二阶段：创建最终运行环境
-FROM golang:1.23
+FROM alpine:latest
 
 WORKDIR /app
 
