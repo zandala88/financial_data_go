@@ -16,6 +16,7 @@ COPY --from=builder /app/main /app/
 COPY nohupRun.sh /app/nohupRun.sh
 
 RUN chmod +x /app/nohupRun.sh
+RUN chmod +x /app/main
 
 # 安装必要的依赖
 RUN apk add --no-cache bash
