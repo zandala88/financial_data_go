@@ -30,7 +30,7 @@ jobs:
             export GOPATH=/go
             export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
             go version
-            cd /root/project/financia_data_go  # 切换到你的项目目录
+            cd /root/project/financial_data_go  # 切换到你的项目目录
             git pull
             go mod vendor
             ./nohupRun.sh
