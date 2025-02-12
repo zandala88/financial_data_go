@@ -12,26 +12,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      - name: Install lsof
-        run: sudo apt-get install -y lsof
 
-          
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
-          password: ${{ secrets.SHH_PASSWORD}}
+          password: ${{ secrets.SHH_PASSWORD }}
           port: 22  # 服务器 SSH 端口
           script: |
-            source ~/.bashrc
-            export GOROOT=/usr/local/go
-            export GOPATH=/go
-            export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-            go version
             cd /root/project/financial_data_go  # 切换到你的项目目录
             git pull
-            go mod vendor
-            ./nohupRun.sh
-
+            
+            # 停止并删除当前容器
+            docker stop my-go-container || true
+            docker rm my-go-container || true
+            
+            # 重新构建 Docker 镜像
+            docker rmi financial-go-app || true
+            docker build -t financial-go-app .
+            
+            # 运行新的容器
+            docker run -d --name financial-go-app \
+              -v /root/project/financia_data_go/config/docker-config.yaml:/app/config/config.yaml \
+              -v /root/project/financia_data_go/runlog:/app/runlog \
+              -p 8877:8877 \
+              --name my-go-container
+              financial-go-app
