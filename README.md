@@ -1,4 +1,4 @@
-# financia_data_go
+# financial_data_go
 # 金融数据可视化与预测系统
 
 ![Language](https://img.shields.io/badge/language-golang-brightgreen)
