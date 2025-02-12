@@ -39,3 +39,5 @@ jobs:
               -p 8877:8877 \
               --name my-go-container \
               financial-go-app
+            
+            docker image prune -f
