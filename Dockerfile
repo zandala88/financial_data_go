@@ -12,6 +12,10 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/main .
+# 确保 main 被正确复制到 /app 目录
+COPY --from=builder /app/main /app/
+
+# 确保 main 文件可以被执行
+RUN chmod +x /app/main
 
 CMD ["./main"]
