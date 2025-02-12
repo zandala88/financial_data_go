@@ -8,14 +8,16 @@ RUN go env -w GOPROXY=https://goproxy.cn,direct
 
 RUN go mod vendor && go build -o main .
 
-FROM golang:1.23
+FROM alpine:latest
 
 WORKDIR /app
 
-# 确保 main 被正确复制到 /app 目录
 COPY --from=builder /app/main /app/
+COPY nohupRun.sh /app/nohupRun.sh
 
-# 确保 main 文件可以被执行
-RUN chmod +x /app/main
+RUN chmod +x /app/nohupRun.sh
 
-CMD ["./main"]
+# 安装必要的依赖
+RUN apk add --no-cache bash
+
+CMD ["./nohupRun.sh"]
