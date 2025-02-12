@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
+      - name: Docker build
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -34,8 +34,8 @@ jobs:
             
             # 运行新的容器
             docker run -d --name financial-go-app \
-              -v /root/project/financia_data_go/config/docker-config.yaml:/app/config/config.yaml \
-              -v /root/project/financia_data_go/runlog:/app/runlog \
+              -v /root/project/financial_data_go/config/docker-config.yaml:/app/config/config.yaml \
+              -v /root/project/financial_data_go/runlog:/app/runlog \
               -p 8877:8877 \
               --name my-go-container \
               financial-go-app
