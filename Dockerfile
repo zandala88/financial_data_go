@@ -13,7 +13,7 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/main /app/
-COPY nohupRun.sh /app/nohupRun.sh
+COPY dockerNohupRun.sh /app/nohupRun.sh
 
 RUN chmod +x /app/nohupRun.sh
 RUN chmod +x /app/main
