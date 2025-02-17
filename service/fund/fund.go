@@ -329,7 +329,7 @@ func PredictFund(c *gin.Context) {
 	})
 
 	last7 := make([]float64, 0, 7)
-	for i := range fundData[len(fundData)-7:] {
+	for i := range fundData[:7] {
 		last7 = append(last7, fundData[i].Close)
 	}
 
