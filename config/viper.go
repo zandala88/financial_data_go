@@ -73,7 +73,7 @@ type TuShareConfig struct {
 }
 
 type PythonConfig struct {
-	Url []string
+	Url string
 }
 
 func init() {

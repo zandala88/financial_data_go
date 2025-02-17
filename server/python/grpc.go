@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"strings"
 	"time"
 )
 
@@ -21,10 +20,8 @@ var (
 func NewGRPCClient() {
 	// 负载均衡：round_robin
 	servers := config.Configs.Python.Url
-	target := "dns:///" + strings.Join(servers, " ")
-
 	conn, err := grpc.NewClient(
-		target,
+		servers,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
 	)
