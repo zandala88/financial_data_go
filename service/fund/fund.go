@@ -319,7 +319,7 @@ func PredictFund(c *gin.Context) {
 		return
 	}
 
-	if len(fundData) != 31 {
+	if len(fundData) == 0 {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [GetFundData] [err] = 数据为空", "")
 		return
 	}

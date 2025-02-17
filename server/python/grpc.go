@@ -40,6 +40,10 @@ func SendPredictRequest(req *pb.PredictRequest) (float64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	if len(req.Data) != 31 {
+		return 0, nil
+	}
+
 	resp, err := rpcCli.Predict(ctx, req)
 	if err != nil {
 		zap.S().Error("[SendPredictRequest] [err] = ", err.Error())
