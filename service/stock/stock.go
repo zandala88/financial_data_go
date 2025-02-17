@@ -393,7 +393,7 @@ func PredictStock(c *gin.Context) {
 		return
 	}
 
-	if len(stockData) == 0 {
+	if len(stockData) != 31 {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictStock] [GetStockDataLimit30] [err] = %s", "stockData is nil")
 		return
 	}
