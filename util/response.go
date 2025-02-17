@@ -29,7 +29,7 @@ func FailRespWithCode(c *gin.Context, code int) {
 
 func FailRespWithCodeAndZap(c *gin.Context, code int, format, logStr string) {
 	FailRespWithCode(c, code)
-	zap.S().Error(format, logStr)
+	zap.S().Errorf(format, logStr)
 }
 
 func GetErrorMessage(code int) string {
