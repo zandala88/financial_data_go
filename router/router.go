@@ -84,8 +84,6 @@ func HTTPRouter() {
 		free.GET("/stock/top10", stock.Top10Stock)
 		// 股票 - 首页排行
 		free.GET("/stock/hsgt/top10", stock.Top10HsgtStock)
-		// 股票 - 预测数据
-		free.GET("/stock/predict", stock.PredictStock)
 
 		// 公募基金 - 筛选参数
 		free.GET("/fund/query", fund.QueryFund)
@@ -97,8 +95,6 @@ func HTTPRouter() {
 		free.GET("/fund/data", fund.DataFund)
 		// 公募基金 - 首页图表
 		free.GET("/fund/graph", fund.GraphFund)
-		// 公募基金 - 预测数据
-		free.GET("/fund/predict", fund.PredictFund)
 
 		// 期货 - 筛选参数
 		free.GET("/fut/query", fut.QueryFut)
@@ -128,6 +124,12 @@ func HTTPRouter() {
 
 		// 基金 - 关注（取消关注）
 		auth.POST("/fund/follow", fund.FollowFund)
+
+		// 股票 - 预测数据
+		free.GET("/stock/predict", stock.PredictStock)
+
+		// 公募基金 - 预测数据
+		free.GET("/fund/predict", fund.PredictFund)
 
 		// 个人 - 信息提示确认
 		free.POST("/user/tip/confirm", user.TipConfirm)
