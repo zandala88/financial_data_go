@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package predict;
+
+option go_package = "/grpc";
+
+service Predictor {
+  rpc Predict (PredictRequest) returns (PredictResponse);
+}
+
+message DataPoint {
+  string date = 1;
+  double co_imf1 = 2;
+  double co_imf2 = 3;
+  double co_imf3 = 4;
+  double co_imf4 = 5;
+  double target = 6;
+}
+
+message PredictRequest {
+  repeated DataPoint data = 1;
+}
+
+message PredictResponse {
+  double val = 1;
+}
