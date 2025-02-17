@@ -52,6 +52,10 @@ func predict(c context.Context, userId int64, resp *UserInfoResp) error {
 					return err
 				}
 
+				if len(stockData) != 31 {
+					return nil
+				}
+
 				// 排序数据，确保时间顺序正确
 				sort.Slice(stockData, func(i, j int) bool {
 					return stockData[i].TradeDate.Before(stockData[j].TradeDate)
@@ -108,6 +112,10 @@ func predict(c context.Context, userId int64, resp *UserInfoResp) error {
 				if err != nil {
 					zap.S().Error("[Info] [GetFundDataLimit30] [err] = ", err.Error())
 					return err
+				}
+
+				if len(fundData) != 31 {
+					return nil
 				}
 
 				sort.Slice(fundData, func(i, j int) bool {
