@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/model"
@@ -135,6 +136,10 @@ func GetFundDataLimit30(ctx context.Context, tsCode string) ([]*model.FundData, 
 	err := connector.GetDB().WithContext(ctx).
 		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? order by f_trade_date desc limit 31", tsCode).
 		Scan(&fundData).Error
+
+	if len(fundData) == 0 {
+		return nil, errors.New("no stock data")
+	}
 
 	rdb := connector.GetRedis().WithContext(ctx)
 	rdb.Set(ctx, fmt.Sprintf(public.RedisKeyFundToday, tsCode), fundData[0].Close, time.Duration(util.SecondsUntilMidnight())*time.Second)
