@@ -131,7 +131,7 @@ func GetFundData(ctx context.Context, tsCode, start, end string) ([]*model.FundD
 }
 
 func GetFundDataLimit30(ctx context.Context, tsCode string) ([]*model.FundData, error) {
-	var fundData []*model.FundData
+	fundData := make([]*model.FundData, 0)
 	err := connector.GetDB().WithContext(ctx).
 		Raw("SELECT * FROM t_fund_data WHERE f_ts_code = ? order by f_trade_date desc limit 31", tsCode).
 		Scan(&fundData).Error
