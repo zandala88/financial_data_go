@@ -128,6 +128,9 @@ func HTTPRouter() {
 		// 股票 - 预测数据
 		free.GET("/stock/predict", stock.PredictStock)
 
+		// 股票 - AI分析
+		free.GET("/stock/ai", stock.AiStock)
+
 		// 公募基金 - 预测数据
 		free.GET("/fund/predict", fund.PredictFund)
 

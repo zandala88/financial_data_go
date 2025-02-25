@@ -17,6 +17,7 @@ type Config struct {
 	Email   EmailConfig
 	TuShare TuShareConfig
 	Python  PythonConfig
+	Spark   SparkConfig
 }
 
 type MySQLConfig struct {
@@ -74,6 +75,10 @@ type TuShareConfig struct {
 
 type PythonConfig struct {
 	Url string
+}
+
+type SparkConfig struct {
+	Password string
 }
 
 func init() {

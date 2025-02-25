@@ -7,6 +7,7 @@ import (
 	"financia/public/db/connector"
 	"financia/public/db/dao"
 	"financia/server/python"
+	"financia/server/spark"
 	"financia/server/tushare"
 	"financia/service/fut"
 	"financia/util"
@@ -467,4 +468,38 @@ func FollowStock(c *gin.Context) {
 	}
 
 	util.SuccessResp(c, nil)
+}
+
+func AiStock(c *gin.Context) {
+	var req AiStockReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[AiStock] [ShouldBindJSON] [err] = %s", err.Error())
+		return
+	}
+
+	stockInfo, err := dao.GetStockInfo(c, req.Id)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AiStock] [GetStockInfo] [err] = %s", err.Error())
+		return
+	}
+
+	limit30, err := dao.GetStockDataLimit30(c, stockInfo.TsCode)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AiStock] [GetStockDataLimit30] [err] = %s", err.Error())
+		return
+	}
+
+	if len(limit30) == 0 {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AiStock] [GetStockDataLimit30] [err] = %s", "limit30 is nil")
+		return
+	}
+
+	var close []float64
+	for _, v := range limit30 {
+		close = append(close, v.Close)
+	}
+
+	spark.SendSparkHttp(c, close, stockInfo.TsCode, cast.ToString(util.GetUid(c)))
+	return
+
 }

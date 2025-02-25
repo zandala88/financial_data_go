@@ -17,6 +17,8 @@ const (
 	RedisKeyFundFollow  = "fund_follow:%d"
 	RedisKeyFundToday   = "fund_today:%s"
 
+	RedisSparkKey = "spark:%s"
+
 	RedisKeyTip = "tip:%d"
 )
 

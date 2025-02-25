@@ -137,3 +137,11 @@ type FollowStockReq struct {
 	Id     int  `form:"id" binding:"required"`
 	Follow bool `form:"follow"`
 }
+
+type AiStockReq struct {
+	Id int `form:"id" binding:"required"`
+}
+
+type AiStockResp struct {
+	Content string `json:"content"`
+}
