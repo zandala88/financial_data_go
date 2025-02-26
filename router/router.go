@@ -134,6 +134,9 @@ func HTTPRouter() {
 		// 公募基金 - 预测数据
 		free.GET("/fund/predict", fund.PredictFund)
 
+		// 公募基金 - AI分析
+		free.GET("/fund/ai", fund.AiFund)
+
 		// 个人 - 信息提示确认
 		free.POST("/user/tip/confirm", user.TipConfirm)
 	}

@@ -499,7 +499,7 @@ func AiStock(c *gin.Context) {
 		close = append(close, v.Close)
 	}
 
-	spark.SendSparkHttp(c, close, stockInfo.TsCode, cast.ToString(util.GetUid(c)))
+	spark.SendSparkHttp(c, close, cast.ToString(util.GetUid(c)))
 	return
 
 }

@@ -8,6 +8,7 @@ import (
 	"financia/public/db/dao"
 	"financia/public/db/model"
 	"financia/server/python"
+	"financia/server/spark"
 	"financia/server/tushare"
 	"financia/util"
 	"fmt"
@@ -357,4 +358,37 @@ func PredictFund(c *gin.Context) {
 		List: last7,
 		Val:  val,
 	})
+}
+
+func AiFund(c *gin.Context) {
+	var req AiFundReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[AiFund] [ShouldBindJSON] [err] = %s", err.Error())
+		return
+	}
+
+	fundInfo, err := dao.GetFundInfo(c, req.Id)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AiFund] [GetFundInfo] [err] = %s", err.Error())
+		return
+	}
+
+	limit30, err := dao.GetFundDataLimit30(c, fundInfo.TsCode)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AiFund] [GetFundData] [err] = %s", err.Error())
+		return
+	}
+
+	if len(limit30) == 0 {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AiFund] [GetFundData] [err] = 数据为空", "")
+		return
+	}
+
+	var close []float64
+	for _, v := range limit30 {
+		close = append(close, v.Close)
+	}
+
+	spark.SendSparkHttp(c, close, cast.ToString(util.GetUid(c)))
+	return
 }

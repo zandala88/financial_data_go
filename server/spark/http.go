@@ -16,11 +16,11 @@ var (
 	url     = "https://spark-api-open.xf-yun.com/v1/chat/completions"
 	token   = "Bearer %s"
 	model   = "4.0Ultra"
-	predMsg = "你是一个专业的金融量化分析师。我会给你股票一定时间内的收盘价、简单移动平均线、指数移动平均线、加权移动平均线、" +
+	predMsg = "你是一个专业的金融量化分析师。我会给你股票或者基金一定时间内的收盘价、简单移动平均线、指数移动平均线、加权移动平均线、" +
 		"指数平滑异同平均线、相对强弱指标，请你分析这些数据并用中文回答我。"
 )
 
-func SendSparkHttp(c *gin.Context, arr []float64, tsCode, userId string) {
+func SendSparkHttp(c *gin.Context, arr []float64, userId string) {
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
 	c.Writer.Header().Set("Connection", "keep-alive")
