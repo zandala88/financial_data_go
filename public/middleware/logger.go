@@ -67,7 +67,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 		duration := time.Since(startTime)
 
 		// 记录响应信息
-		zap.S().Infof("\n请求路径: %s\n 状态码: %d\n 响应体: %s\n 耗时: %v",
-			c.Request.URL.Path, c.Writer.Status(), respWriter.body.String(), duration)
+		zap.S().Infof("\n请求路径: %s\n 状态码: %d\n\n 耗时: %v",
+			c.Request.URL.Path, c.Writer.Status(), duration)
 	}
 }
