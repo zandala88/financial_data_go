@@ -2,10 +2,12 @@ package fut
 
 import (
 	"encoding/json"
+	"errors"
 	"financia/public/db/connector"
 	"financia/server/tushare"
 	"financia/util"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 	"sort"
 	"time"
@@ -75,12 +77,35 @@ func DetailFut(c *gin.Context) {
 		return
 	}
 
+	rdb := connector.GetRedis().WithContext(c)
+	result, err := rdb.Get(c, "detail_fut_"+req.Prd).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		zap.S().Errorf("[DetailFut] [rdb.Get] [err] = %s", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DetailFut] [rdb.Get] [err] = %s", err.Error())
+		return
+	}
+	if result != "" {
+		var resp DetailFutResp
+		if err = json.Unmarshal([]byte(result), &resp); err != nil {
+			zap.S().Errorf("[DetailFut] [json.Unmarshal] [err] = %s", err.Error())
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[DetailFut] [json.Unmarshal] [err] = %s", err.Error())
+			return
+		}
+		util.SuccessResp(c, &resp)
+		return
+	}
+
 	list := tushare.FutWeeklyDetail(c, req.Prd)
 	sort.Slice(list, func(i, j int) bool {
 		return list[i].WeekDate < list[j].WeekDate
 	})
 
-	util.SuccessResp(c, &DetailFutResp{
+	resp := &DetailFutResp{
 		List: list,
-	})
+	}
+
+	rdbStr, _ := json.Marshal(resp)
+	_, err = rdb.Set(c, "detail_fut_"+req.Prd, rdbStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
+
+	util.SuccessResp(c, resp)
 }
