@@ -36,6 +36,7 @@ jobs:
             docker run -d --name financial-go-app \
               -v /root/project/financial_data_go/config/docker-config.yaml:/app/config/config.yaml \
               -v /root/project/financial_data_go/runlog:/app/runlog \
+              -e TZ=Asia/Shanghai \
               -p 8877:8877 \
               --name my-go-container \
               financial-go-app

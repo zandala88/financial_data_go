@@ -44,6 +44,20 @@ func VerifyJWT(tokenString string) (*MyClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
+func VerifyJWTNotError(tokenString string) (*MyClaims, error) {
+	// 解析token
+	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (i interface{}, err error) {
+		return []byte(config.Configs.Auth.AccessSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*MyClaims); ok && token.Valid { // 校验token
+		return claims, nil
+	}
+	return nil, errors.New("invalid token")
+}
+
 func GetUid(c *gin.Context) int64 {
 	value, exists := c.Get("user_id")
 	if !exists {
