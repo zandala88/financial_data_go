@@ -228,7 +228,7 @@ func ListStock(c *gin.Context) {
 	key := fmt.Sprintf(public.RedisKeyStockList, req.Search, req.IsHs, req.Exchange, req.Market, req.Page, req.PageSize)
 	rdb := connector.GetRedis()
 	result, err := rdb.Get(c, key).Result()
-	if err != nil {
+	if err != nil && !errors.Is(err, redis.Nil) {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ListStock] [rdb.Get] [err] = %s", err.Error())
 		return
 	}
