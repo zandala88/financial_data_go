@@ -225,6 +225,23 @@ func ListStock(c *gin.Context) {
 		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[ListStock] [ShouldBindJSON] [err] = %s", err.Error())
 		return
 	}
+	key := fmt.Sprintf(public.RedisKeyStockList, req.Search, req.IsHs, req.Exchange, req.Market, req.Page, req.PageSize)
+	rdb := connector.GetRedis()
+	result, err := rdb.Get(c, key).Result()
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ListStock] [rdb.Get] [err] = %s", err.Error())
+		return
+	}
+
+	if result != "" {
+		var resp ListStockResp
+		if err := json.Unmarshal([]byte(result), &resp); err != nil {
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[ListStock] [json.Unmarshal] [err] = %s", err.Error())
+			return
+		}
+		util.SuccessResp(c, &resp)
+		return
+	}
 
 	list, count, err := dao.GetStockList(c, req.Search, req.IsHs, req.Exchange, req.Market, req.Page, req.PageSize)
 	if err != nil {
@@ -252,11 +269,18 @@ func ListStock(c *gin.Context) {
 		})
 	}
 
-	util.SuccessResp(c, &ListStockResp{
+	resp := &ListStockResp{
 		List:         respList,
 		HasMore:      count > int64(req.Page*(req.PageSize-1)+len(list)),
 		TotalPageNum: int(count/int64(req.PageSize) + 1),
-	})
+	}
+
+	go func() {
+		respStr, _ := json.Marshal(resp)
+		_, _ = rdb.Set(c, key, respStr, 0).Result()
+	}()
+
+	util.SuccessResp(c, resp)
 }
 
 func QueryStock(c *gin.Context) {
