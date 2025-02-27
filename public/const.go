@@ -19,6 +19,9 @@ const (
 
 	RedisKeyStockList = "stock_list:%s%s%s%s%d%d"
 
+	RedisKeyStockDataDoToday = "stock_data_do_today:%s"
+	RedisKeyFundDataDoToday  = "fund_data_do_today:%s"
+
 	RedisKeyTip = "tip:%d"
 )
 

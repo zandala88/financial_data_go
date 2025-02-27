@@ -1,6 +1,7 @@
 package stock
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"financia/public"
@@ -20,6 +21,8 @@ import (
 	"strings"
 	"time"
 )
+
+var dataStock int
 
 func DataStock(c *gin.Context) {
 	var req DataStockReq
@@ -68,15 +71,25 @@ func DataStock(c *gin.Context) {
 
 	// 异步更新数据
 	go func() {
+		ctx := context.Background()
+		rdb := connector.GetRedis().WithContext(ctx)
+		key := fmt.Sprintf(public.RedisKeyStockDataDoToday, info.TsCode)
+		exists := rdb.Exists(ctx, key)
+		if exists.Val() == 1 {
+			return
+		}
+
 		last := list[len(list)-1]
 		date := strings.ReplaceAll(last.TradeDate.Add(time.Hour*24).Format(time.DateOnly), "-", "")
-		data := tushare.DailyStockAll(c, &tushare.DailyReq{
+		data := tushare.DailyStockAll(ctx, &tushare.DailyReq{
 			TsCode:    info.TsCode,
 			StartDate: date,
 		})
-		if err := dao.InsertStockData(c, data); err != nil {
+		if err := dao.InsertStockData(ctx, data); err != nil {
 			zap.S().Error("[DataStock] [InsertStockData] [err] = ", err.Error())
 		}
+
+		rdb.Set(ctx, key, "1", time.Duration(util.SecondsUntilMidnight())*time.Second)
 	}()
 
 	util.SuccessResp(c, &DataStockResp{
