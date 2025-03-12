@@ -120,7 +120,7 @@ func FundSalesVol(ctx context.Context) []*FundSalesVolResp {
 
 func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 	now := time.Now().Add(-31 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
-	end := time.Now().Add(31 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
+	end := time.Now().Add(52 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
 	r := tuSharePost(public.TuShareFutTradeCal, &DailyReq{
 		Exchange:  "SSE",
 		StartDate: now,
