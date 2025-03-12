@@ -77,7 +77,7 @@ func DetailFut(c *gin.Context) {
 		return
 	}
 
-	rdb := connector.GetRedis().WithContext(c)
+	rdb := connector.GetRedis()
 	result, err := rdb.Get(c, "detail_fut_"+req.Prd).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		zap.S().Errorf("[DetailFut] [rdb.Get] [err] = %s", err.Error())
