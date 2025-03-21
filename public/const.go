@@ -23,6 +23,8 @@ const (
 	RedisKeyFundDataDoToday  = "fund_data_do_today:%s"
 
 	RedisKeyTip = "tip:%d"
+
+	RedisKeyPredictList = "predict_list"
 )
 
 const (
