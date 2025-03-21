@@ -25,6 +25,8 @@ const (
 	RedisKeyTip = "tip:%d"
 
 	RedisKeyPredictList = "predict_list"
+	RedisKeyRankStock   = "rank_stock:%s:%d"
+	RedisKeyRankFund    = "rank_fund:%s:%d"
 )
 
 const (

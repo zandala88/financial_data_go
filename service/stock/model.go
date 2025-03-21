@@ -145,3 +145,19 @@ type AiStockReq struct {
 type AiStockResp struct {
 	Content string `json:"content"`
 }
+
+type RankStockReq struct {
+	Types string `form:"types" binding:"required"`
+	Size  int    `form:"size" binding:"required"`
+}
+
+type RankStockResp struct {
+	List []*RankStockSimple `json:"list"`
+}
+
+type RankStockSimple struct {
+	Id    int    `json:"id"`
+	Name  string `json:"name"`
+	Score string `json:"score"`
+	score float64
+}

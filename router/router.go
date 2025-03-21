@@ -85,6 +85,8 @@ func HTTPRouter() {
 		free.GET("/stock/top10", stock.Top10Stock)
 		// 股票 - 首页排行
 		free.GET("/stock/hsgt/top10", stock.Top10HsgtStock)
+		// 股票 - 涨跌排行榜
+		free.GET("/stock/rank", stock.RankStock)
 
 		// 公募基金 - 筛选参数
 		free.GET("/fund/query", fund.QueryFund)
@@ -113,6 +115,7 @@ func HTTPRouter() {
 
 		// 个人 - 信息提示
 		free.GET("/user/tip", user.Tip)
+
 	}
 
 	auth := v1.Use(middleware.AuthCheck())

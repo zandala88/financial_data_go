@@ -7,6 +7,7 @@ import (
 	"financia/public"
 	"financia/public/db/connector"
 	"financia/public/db/dao"
+	"financia/public/db/model"
 	"financia/server/python"
 	"financia/server/spark"
 	"financia/server/tushare"
@@ -17,6 +18,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"math"
 	"sort"
 	"strings"
 	"time"
@@ -538,5 +540,82 @@ func AiStock(c *gin.Context) {
 
 	spark.SendSparkHttp(c, close, cast.ToString(util.GetUid(c)))
 	return
+}
 
+func RankStock(c *gin.Context) {
+	var req RankStockReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[RankStock] [ShouldBindJSON] [err] = %s", err.Error())
+		return
+	}
+
+	rdb := connector.GetRedis().WithContext(c)
+
+	tsCodeList, _ := rdb.SMembers(c, public.RedisKeyPredictList).Result()
+	respList := make([]*RankStockSimple, 0, len(tsCodeList))
+
+	key := fmt.Sprintf(public.RedisKeyRankStock, req.Types, req.Size)
+	result, err := rdb.Get(c, key).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[RankStock] [rdb.Get] [err] = %s", err.Error())
+		return
+	}
+	if result != "" {
+		if err := json.Unmarshal([]byte(result), &respList); err != nil {
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[RankStock] [json.Unmarshal] [err] = %s", err.Error())
+			return
+		}
+		util.SuccessResp(c, &RankStockResp{
+			List: respList,
+		})
+		return
+	}
+
+	var stockList []model.StockInfo
+	connector.GetDB().WithContext(c).Model(model.StockInfo{}).Where("f_ts_code IN (?)", tsCodeList).Find(&stockList)
+	stockMap := make(map[string]model.StockInfo, len(stockList))
+	for _, stock := range stockList {
+		stockMap[stock.TsCode] = stock
+	}
+
+	for _, tsCode := range tsCodeList {
+		keyToday := fmt.Sprintf(public.RedisKeyStockToday, tsCode)
+		valToday := cast.ToFloat64(rdb.Get(c, keyToday).Val())
+
+		keyPredict := fmt.Sprintf(public.RedisKeyStockPredict, stockMap[tsCode].Id)
+		valPredict := cast.ToFloat64(rdb.Get(c, keyPredict).Val())
+
+		if valPredict == 0 || valToday == 0 {
+			continue
+		}
+
+		if (req.Types == "up" && valToday > valPredict) || (req.Types == "down" && valToday < valPredict) {
+			continue
+		}
+
+		//zap.S().Debugf("[RankStock] [tsCode] = %s [valToday] = %f [valPredict] = %f", tsCode, valToday, valPredict)
+
+		respList = append(respList, &RankStockSimple{
+			Id:    stockMap[tsCode].Id,
+			Name:  stockMap[tsCode].Name,
+			Score: fmt.Sprintf("%.2f", math.Abs(((valPredict-valToday)/valToday)*100)),
+			score: math.Abs(((valPredict - valToday) / valToday) * 100),
+		})
+	}
+
+	sort.Slice(respList, func(i, j int) bool {
+		return respList[i].score > respList[j].score
+	})
+
+	go func() {
+		ctx := context.Background()
+		rdb = connector.GetRedis().WithContext(ctx)
+
+		respStr, _ := json.Marshal(respList[:req.Size])
+		_, _ = rdb.Set(ctx, key, respStr, time.Duration(util.SecondsUntilMidnight())*time.Second).Result()
+	}()
+
+	util.SuccessResp(c, &RankStockResp{
+		List: respList[:req.Size],
+	})
 }
