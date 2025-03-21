@@ -441,7 +441,7 @@ func PredictStock(c *gin.Context) {
 	})
 
 	last7 := make([]float64, 0, 7)
-	for i := range stockData[:7] {
+	for i := range stockData[len(stockData)-7:] {
 		last7 = append(last7, stockData[i].Close)
 	}
 
