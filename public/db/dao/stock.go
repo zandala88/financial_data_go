@@ -174,22 +174,6 @@ func InsertStockData(ctx context.Context, data []*model.StockData) error {
 	return nil
 }
 
-// SameMarketList 查询同市场股票列表
-func SameMarketList(ctx context.Context, market string, id int) ([]*model.StockInfo, error) {
-	var stockList []*model.StockInfo
-	err := connector.GetDB().WithContext(ctx).
-		Model(&model.StockInfo{}).Where("f_market = ?", market).Where("f_id <> ?", id).Find(&stockList).Error
-	return stockList, err
-}
-
-func SameIndustryList(ctx context.Context, industry string, id int) ([]*model.StockInfo, error) {
-	var stockList []*model.StockInfo
-	err := connector.GetDB().WithContext(ctx).
-		Model(&model.StockInfo{}).Where("f_industry = ?", industry).Where("f_id <> ?", id).Find(&stockList).Error
-	return stockList, err
-}
-
-type TsCodeAndClose struct {
-	TsCode string  `gorm:"column:f_ts_code"`
-	Close  float64 `gorm:"column:f_close"`
+func InsertStockPredict(ctx context.Context, data *model.StockPredict) {
+	connector.GetDB().WithContext(ctx).Create(data)
 }

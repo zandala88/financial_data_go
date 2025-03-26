@@ -146,3 +146,7 @@ func GetFundDataLimit30(ctx context.Context, tsCode string) ([]*model.FundData, 
 
 	return fundData, err
 }
+
+func InsertFundPredict(ctx context.Context, data *model.FundPredict) {
+	connector.GetDB().WithContext(ctx).Create(data)
+}

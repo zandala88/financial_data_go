@@ -2,10 +2,13 @@ package python
 
 import (
 	"context"
+	"encoding/json"
 	"financia/public"
 	"financia/public/db/connector"
+	"financia/public/db/dao"
 	"financia/public/db/model"
 	pb "financia/server/python/grpc"
+	"financia/server/tushare"
 	"financia/util"
 	"fmt"
 	"go.uber.org/zap"
@@ -40,6 +43,33 @@ func PythonPredictStock(id int, stockData []*model.StockData) (float64, error) {
 	go func() {
 		rdb := connector.GetRedis()
 		rdb.Set(context.Background(), fmt.Sprintf(public.RedisKeyStockPredict, id), val, time.Second*time.Duration(util.SecondsUntilMidnight()))
+
+		tsCode := stockData[0].TsCode
+
+		// 找到下一个交易日
+		type CalFutResp struct {
+			Sse  []*tushare.FutTradeCalResp `json:"sse"`
+			Szse []*tushare.FutTradeCalResp `json:"szse"`
+		}
+		resp := &CalFutResp{
+			Sse:  make([]*tushare.FutTradeCalResp, 0),
+			Szse: make([]*tushare.FutTradeCalResp, 0),
+		}
+		result, _ := rdb.Get(context.Background(), "cal_fut").Result()
+		json.Unmarshal([]byte(result), resp)
+		var nextTradeDate string
+		for _, v := range resp.Sse {
+			if v.IsOpen == 1 && v.CalDate > stockData[len(stockData)-1].TradeDate.Format(time.DateOnly) {
+				nextTradeDate = v.CalDate
+				break
+			}
+		}
+
+		dao.InsertStockPredict(context.Background(), &model.StockPredict{
+			TsCode:    tsCode,
+			TradeDate: util.ConvertDateStrToTime(nextTradeDate, time.DateOnly),
+			Predict:   val,
+		})
 	}()
 
 	return val, nil
@@ -72,6 +102,33 @@ func PythonPredictFund(id int, fundData []*model.FundData) (float64, error) {
 	go func() {
 		rdb := connector.GetRedis()
 		rdb.Set(context.Background(), fmt.Sprintf(public.RedisKeyFundPredict, id), val, time.Second*time.Duration(util.SecondsUntilMidnight()))
+
+		tsCode := fundData[0].TsCode
+
+		// 找到下一个交易日
+		type CalFutResp struct {
+			Sse  []*tushare.FutTradeCalResp `json:"sse"`
+			Szse []*tushare.FutTradeCalResp `json:"szse"`
+		}
+		resp := &CalFutResp{
+			Sse:  make([]*tushare.FutTradeCalResp, 0),
+			Szse: make([]*tushare.FutTradeCalResp, 0),
+		}
+		result, _ := rdb.Get(context.Background(), "cal_fut").Result()
+		json.Unmarshal([]byte(result), resp)
+		var nextTradeDate string
+		for _, v := range resp.Sse {
+			if v.IsOpen == 1 && v.CalDate > fundData[len(fundData)-1].TradeDate.Format(time.DateOnly) {
+				nextTradeDate = v.CalDate
+				break
+			}
+		}
+
+		dao.InsertFundPredict(context.Background(), &model.FundPredict{
+			TsCode:    tsCode,
+			TradeDate: util.ConvertDateStrToTime(nextTradeDate, time.DateOnly),
+			Predict:   val,
+		})
 	}()
 
 	return val, nil

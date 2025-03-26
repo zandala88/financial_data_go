@@ -442,10 +442,14 @@ func PredictStock(c *gin.Context) {
 		return stockData[i].TradeDate.Before(stockData[j].TradeDate)
 	})
 
+	zap.S().Debugf("[PredictStock] [stockData] = %+v", stockData[len(stockData)-1])
+
 	last7 := make([]float64, 0, 7)
 	for i := range stockData[len(stockData)-7:] {
 		last7 = append(last7, stockData[i].Close)
 	}
+
+	zap.S().Debugf("[PredictStock] [last7] = %+v", last7[len(last7)-1])
 
 	rdb := connector.GetRedis().WithContext(c)
 	result, err := rdb.Get(c, fmt.Sprintf(public.RedisKeyStockPredict, req.Id)).Result()

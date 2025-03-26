@@ -45,3 +45,14 @@ type FundData struct {
 func (FundData) TableName() string {
 	return "t_fund_data"
 }
+
+type FundPredict struct {
+	Id        int       `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	TsCode    string    `gorm:"type:varchar(20);column:f_ts_code" json:"tsCode"`
+	TradeDate time.Time `gorm:"type:date;column:f_trade_date" json:"tradeDate"`
+	Predict   float64   `gorm:"type:decimal(10,2);column:f_predict" json:"predict"`
+}
+
+func (FundPredict) TableName() string {
+	return "t_fund_predict"
+}
