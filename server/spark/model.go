@@ -25,10 +25,11 @@ type SparkResp struct {
 }
 
 type AnalyzeData struct {
-	Data []float64 `json:"data"`
-	SMA  []float64 `json:"sma"`
-	EMA  []float64 `json:"ema"`
-	WMA  []float64 `json:"wma"`
-	MACD []float64 `json:"macd"`
-	RSI  []float64 `json:"rsi"`
+	Data    []float64 `json:"data"`
+	SMA     []float64 `json:"sma"`
+	EMA     []float64 `json:"ema"`
+	WMA     []float64 `json:"wma"`
+	MACD    []float64 `json:"macd"`
+	RSI     []float64 `json:"rsi"`
+	Predict float64   `json:"predict"`
 }

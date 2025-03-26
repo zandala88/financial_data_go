@@ -400,6 +400,29 @@ func AiFund(c *gin.Context) {
 		close = append(close, v.Close)
 	}
 
-	spark.SendSparkHttp(c, close, cast.ToString(util.GetUid(c)))
+	sort.Slice(limit30, func(i, j int) bool {
+		return limit30[i].TradeDate.Before(limit30[j].TradeDate)
+	})
+
+	last7 := make([]float64, 0, 7)
+	for i := range limit30[len(limit30)-7:] {
+		last7 = append(last7, limit30[i].Close)
+	}
+
+	var val float64
+
+	rdb := connector.GetRedis().WithContext(c)
+	result, err := rdb.Get(c, fmt.Sprintf(public.RedisKeyFundPredict, req.Id)).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[PredictFund] [rdb.Get] [err] = ", err.Error())
+		return
+	}
+	if !errors.Is(err, redis.Nil) {
+		val = cast.ToFloat64(result)
+	} else {
+		val, _ = python.PythonPredictFund(req.Id, limit30)
+	}
+
+	spark.SendSparkHttp(c, close, cast.ToString(util.GetUid(c)), val)
 	return
 }
