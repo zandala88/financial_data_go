@@ -442,21 +442,9 @@ func PredictStock(c *gin.Context) {
 		return stockData[i].TradeDate.Before(stockData[j].TradeDate)
 	})
 
-	//zap.S().Debugf("[PredictStock] [stockData] = %+v", stockData[len(stockData)-1])
-
-	for i := range stockData {
-		zap.S().Debugf("[PredictStock] [stockData] = %#v", stockData[i])
-	}
-
 	last7 := make([]float64, 0, 7)
 	for i := 0; i < 7; i++ {
 		last7 = append(last7, stockData[len(stockData)-7+i].Close)
-	}
-
-	//zap.S().Debugf("[PredictStock] [last7] = %+v", last7[len(last7)-1])
-
-	for i := range last7 {
-		zap.S().Debugf("[PredictStock] [last7] = %#v", last7[i])
 	}
 
 	rdb := connector.GetRedis().WithContext(c)
