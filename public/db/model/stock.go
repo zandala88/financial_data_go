@@ -45,7 +45,7 @@ func (StockData) TableName() string {
 }
 
 type StockPredict struct {
-	Id        int       `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	Id        int       `gorm:"primaryKey;autoIncrement;column:f_id" json:"id"`
 	TsCode    string    `gorm:"type:varchar(20);column:f_ts_code" json:"tsCode"`
 	TradeDate time.Time `gorm:"type:date;column:f_trade_date" json:"tradeDate"`
 	Predict   float64   `gorm:"type:decimal(10,2);column:f_predict" json:"predict"`

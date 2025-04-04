@@ -642,3 +642,62 @@ func RankStock(c *gin.Context) {
 		List: respList[:req.Size],
 	})
 }
+
+func AccuracyStock(c *gin.Context) {
+	var req AccuracyStockReq
+	if err := c.ShouldBind(&req); err != nil {
+		util.FailRespWithCodeAndZap(c, util.ShouldBindJSONError, "[AccuracyStock] [ShouldBindJSON] [err] = %s", err.Error())
+		return
+	}
+
+	// 获取股票信息
+	stockInfo, err := dao.GetStockInfo(c, req.Id)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetStockInfo] [err] = %s", err.Error())
+		return
+	}
+
+	// 获取股票预测数据
+	predict, err := dao.GetAllStockPredict(c, stockInfo.TsCode)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockPredict] [err] = %s", err.Error())
+		return
+	}
+	predictMap := make(map[string]float64, len(predict))
+	for _, v := range predict {
+		predictMap[v.TradeDate.Format(time.DateOnly)] = v.Predict
+	}
+
+	limitDate := predict[0].TradeDate
+	// 获取股票数据
+	stockData, err := dao.GetStockData(c, stockInfo.TsCode, limitDate.Format(time.DateOnly), time.Now().Format(time.DateOnly))
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetStockData] [err] = %s", err.Error())
+		return
+	}
+
+	// 计算涨跌准确率
+	var trueNum, total int
+	for _, v := range stockData {
+		predictClose, ok := predictMap[v.TradeDate.Format(time.DateOnly)]
+		if !ok {
+			continue
+		}
+
+		total++
+		// 相乘符号大于0，相同走势
+		if (v.Close-v.PreClose)*(predictClose-v.PreClose) > 0 {
+			trueNum++
+		}
+	}
+
+	if total == 0 {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [total] [err] = %s", "total is 0")
+		return
+	}
+
+	accuracy := float64(trueNum) / float64(total) * 100
+	util.SuccessResp(c, &AccuracyStockResp{
+		Accuracy: fmt.Sprintf("%.2f", accuracy),
+	})
+}

@@ -87,6 +87,8 @@ func HTTPRouter() {
 		free.GET("/stock/hsgt/top10", stock.Top10HsgtStock)
 		// 股票 - 涨跌排行榜
 		free.GET("/stock/rank", stock.RankStock)
+		// 股票 - 预测准确率
+		free.GET("/stock/accuracy", stock.AccuracyStock)
 
 		// 公募基金 - 筛选参数
 		free.GET("/fund/query", fund.QueryFund)
@@ -98,6 +100,7 @@ func HTTPRouter() {
 		free.GET("/fund/data", fund.DataFund)
 		// 公募基金 - 首页图表
 		free.GET("/fund/graph", fund.GraphFund)
+		// 公募基金 - 预测数准确率
 
 		// 期货 - 筛选参数
 		free.GET("/fut/query", fut.QueryFut)

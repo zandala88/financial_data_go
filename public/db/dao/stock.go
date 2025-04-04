@@ -177,3 +177,10 @@ func InsertStockData(ctx context.Context, data []*model.StockData) error {
 func InsertStockPredict(ctx context.Context, data *model.StockPredict) {
 	connector.GetDB().WithContext(ctx).Create(data)
 }
+
+func GetAllStockPredict(ctx context.Context, tsCode string) ([]*model.StockPredict, error) {
+	var stockPredict []*model.StockPredict
+	err := connector.GetDB().WithContext(ctx).Model(&model.StockPredict{}).Where("f_ts_code", tsCode).
+		Order("f_trade_date").Find(&stockPredict).Error
+	return stockPredict, err
+}

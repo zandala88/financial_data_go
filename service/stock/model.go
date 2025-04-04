@@ -161,3 +161,11 @@ type RankStockSimple struct {
 	Score string `json:"score"`
 	score float64
 }
+
+type AccuracyStockReq struct {
+	Id int `form:"id" binding:"required"`
+}
+
+type AccuracyStockResp struct {
+	Accuracy string `json:"accuracy"`
+}

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"math"
+	"sort"
 	"time"
 )
 
@@ -57,6 +58,9 @@ func PythonPredictStock(id int, stockData []*model.StockData) (float64, error) {
 		}
 		result, _ := rdb.Get(context.Background(), "cal_fut").Result()
 		json.Unmarshal([]byte(result), resp)
+		sort.Slice(resp.Sse, func(i, j int) bool {
+			return resp.Sse[i].CalDate < resp.Sse[j].CalDate
+		})
 		var nextTradeDate string
 		for _, v := range resp.Sse {
 			if v.IsOpen == 1 && v.CalDate > stockData[len(stockData)-1].TradeDate.Format(time.DateOnly) {
@@ -116,6 +120,9 @@ func PythonPredictFund(id int, fundData []*model.FundData) (float64, error) {
 		}
 		result, _ := rdb.Get(context.Background(), "cal_fut").Result()
 		json.Unmarshal([]byte(result), resp)
+		sort.Slice(resp.Sse, func(i, j int) bool {
+			return resp.Sse[i].CalDate < resp.Sse[j].CalDate
+		})
 		var nextTradeDate string
 		for _, v := range resp.Sse {
 			if v.IsOpen == 1 && v.CalDate > fundData[len(fundData)-1].TradeDate.Format(time.DateOnly) {
