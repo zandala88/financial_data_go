@@ -671,6 +671,12 @@ func AccuracyStock(c *gin.Context) {
 			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockData] [err] = %s", err.Error())
 			return
 		}
+
+		// 长度大于50，获取最后50条数据
+		if len(stockData) > 50 {
+			stockData = stockData[len(stockData)-50:]
+		}
+
 		l, r := 0, 31
 		for r < len(stockData) {
 			tmp := stockData[l:r]
