@@ -676,6 +676,9 @@ func AccuracyStock(c *gin.Context) {
 		if len(stockData) > 50 {
 			stockData = stockData[len(stockData)-50:]
 		}
+		if len(stockData) < 30 {
+			goto End
+		}
 
 		l, r := 0, 31
 		for r < len(stockData) {
@@ -684,6 +687,10 @@ func AccuracyStock(c *gin.Context) {
 				Data: make([]*pb.DataPoint, 0, len(tmp)),
 			}
 			for _, v := range tmp[l:r] {
+				if v == nil {
+					zap.S().Debugf("[AccuracyStock] [nil] [v] = %v", v)
+					continue
+				}
 				pyReq.Data = append(pyReq.Data, &pb.DataPoint{
 					Date:   v.TradeDate.Format(time.DateOnly),
 					CoImf1: v.Open,
@@ -708,6 +715,7 @@ func AccuracyStock(c *gin.Context) {
 			})
 		}
 	}
+End:
 	predict, err = dao.GetAllStockPredict(c, stockInfo.TsCode)
 	if err != nil {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockPredict] [err] = %s", err.Error())
