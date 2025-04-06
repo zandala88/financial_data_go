@@ -9,6 +9,7 @@ import (
 	"financia/public/db/dao"
 	"financia/public/db/model"
 	"financia/server/python"
+	pb "financia/server/python/grpc"
 	"financia/server/spark"
 	"financia/server/tushare"
 	"financia/service/fut"
@@ -663,6 +664,50 @@ func AccuracyStock(c *gin.Context) {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockPredict] [err] = %s", err.Error())
 		return
 	}
+	// 如果数据少于30条，请求python获取
+	if len(predict) < 30 {
+		stockData, err := dao.GetAllStockData(c, stockInfo.TsCode)
+		if err != nil {
+			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockData] [err] = %s", err.Error())
+			return
+		}
+		l, r := 0, 31
+		for r < len(stockData) {
+			tmp := stockData[l:r]
+			pyReq := &pb.PredictRequest{
+				Data: make([]*pb.DataPoint, 0, len(tmp)),
+			}
+			for _, v := range tmp[l:r] {
+				pyReq.Data = append(pyReq.Data, &pb.DataPoint{
+					Date:   v.TradeDate.Format(time.DateOnly),
+					CoImf1: v.Open,
+					CoImf2: v.High,
+					CoImf3: v.Low,
+					CoImf4: float64(v.Vol),
+					Target: v.Close,
+				})
+			}
+
+			l++
+			r++
+
+			val, _ := python.SendPredictRequest(pyReq)
+			val = math.Floor(val*1000) / 1000
+			lastDay := util.ConvertDateStrToTime(tmp[len(tmp)-1].TradeDate.Format(time.DateOnly), time.DateOnly).Add(time.Hour * 24)
+
+			dao.InsertStockPredict(context.Background(), &model.StockPredict{
+				TsCode:    stockInfo.TsCode,
+				TradeDate: lastDay,
+				Predict:   val,
+			})
+		}
+	}
+	predict, err = dao.GetAllStockPredict(c, stockInfo.TsCode)
+	if err != nil {
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockPredict] [err] = %s", err.Error())
+		return
+	}
+
 	predictMap := make(map[string]float64, len(predict))
 	for _, v := range predict {
 		predictMap[v.TradeDate.Format(time.DateOnly)] = v.Predict
