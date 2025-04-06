@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -98,6 +99,9 @@ func DailyPredict() {
 		var id int
 		db.Model(model.StockInfo{}).Select("f_id").Where("f_ts_code = ?", tsCode).Scan(&id)
 		stockData, _ := dao.GetStockDataLimit30(ctx, tsCode)
+		sort.Slice(stockData, func(i, j int) bool {
+			return stockData[i].TradeDate.Before(stockData[j].TradeDate)
+		})
 		_, _ = python.PythonPredictStock(id, stockData)
 	}
 }
