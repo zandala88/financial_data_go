@@ -736,18 +736,34 @@ End:
 	}
 
 	// 计算涨跌准确率
-	var trueNum, total int
+	var (
+		trueNum, total int
+		sumClose       float64
+	)
 	for _, v := range stockData {
 		predictClose, ok := predictMap[v.TradeDate.Format(time.DateOnly)]
 		if !ok {
 			continue
 		}
 
+		sumClose += v.Close
 		total++
 		// 相乘符号大于0，相同走势
 		if (v.Close-v.PreClose)*(predictClose-v.PreClose) > 0 {
 			trueNum++
 		}
+	}
+
+	avg := sumClose / float64(total)
+	var sRes, Stot float64
+	for _, v := range stockData {
+		predictClose, ok := predictMap[v.TradeDate.Format(time.DateOnly)]
+		if !ok {
+			continue
+		}
+
+		sRes += math.Pow(v.Close-predictClose, 2)
+		Stot += math.Pow(v.Close-avg, 2)
 	}
 
 	if total == 0 {
@@ -758,5 +774,6 @@ End:
 	accuracy := float64(trueNum) / float64(total) * 100
 	util.SuccessResp(c, &AccuracyStockResp{
 		Accuracy: fmt.Sprintf("%.2f", accuracy),
+		R2:       fmt.Sprintf("%.2f", 100-(100*(sRes/Stot))),
 	})
 }
