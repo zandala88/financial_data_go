@@ -6,6 +6,7 @@ option go_package = "/grpc";
 
 service Predictor {
   rpc Predict (PredictRequest) returns (PredictResponse);
+  rpc PredictAll (PredictAllRequest) returns (PredictAllResponse);
 }
 
 message DataPoint {
@@ -23,4 +24,12 @@ message PredictRequest {
 
 message PredictResponse {
   double val = 1;
+}
+
+message PredictAllRequest{
+  repeated DataPoint data = 1;
+}
+
+message PredictAllResponse{
+  repeated double val = 1;
 }

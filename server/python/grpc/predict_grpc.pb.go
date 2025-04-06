@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Predictor_Predict_FullMethodName = "/predict.Predictor/Predict"
+	Predictor_Predict_FullMethodName    = "/predict.Predictor/Predict"
+	Predictor_PredictAll_FullMethodName = "/predict.Predictor/PredictAll"
 )
 
 // PredictorClient is the client API for Predictor service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PredictorClient interface {
 	Predict(ctx context.Context, in *PredictRequest, opts ...grpc.CallOption) (*PredictResponse, error)
+	PredictAll(ctx context.Context, in *PredictAllRequest, opts ...grpc.CallOption) (*PredictAllResponse, error)
 }
 
 type predictorClient struct {
@@ -47,11 +49,22 @@ func (c *predictorClient) Predict(ctx context.Context, in *PredictRequest, opts 
 	return out, nil
 }
 
+func (c *predictorClient) PredictAll(ctx context.Context, in *PredictAllRequest, opts ...grpc.CallOption) (*PredictAllResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PredictAllResponse)
+	err := c.cc.Invoke(ctx, Predictor_PredictAll_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PredictorServer is the server API for Predictor service.
 // All implementations must embed UnimplementedPredictorServer
 // for forward compatibility.
 type PredictorServer interface {
 	Predict(context.Context, *PredictRequest) (*PredictResponse, error)
+	PredictAll(context.Context, *PredictAllRequest) (*PredictAllResponse, error)
 	mustEmbedUnimplementedPredictorServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedPredictorServer struct{}
 
 func (UnimplementedPredictorServer) Predict(context.Context, *PredictRequest) (*PredictResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Predict not implemented")
+}
+func (UnimplementedPredictorServer) PredictAll(context.Context, *PredictAllRequest) (*PredictAllResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PredictAll not implemented")
 }
 func (UnimplementedPredictorServer) mustEmbedUnimplementedPredictorServer() {}
 func (UnimplementedPredictorServer) testEmbeddedByValue()                   {}
@@ -104,6 +120,24 @@ func _Predictor_Predict_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Predictor_PredictAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PredictAllRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PredictorServer).PredictAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Predictor_PredictAll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PredictorServer).PredictAll(ctx, req.(*PredictAllRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Predictor_ServiceDesc is the grpc.ServiceDesc for Predictor service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var Predictor_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Predict",
 			Handler:    _Predictor_Predict_Handler,
+		},
+		{
+			MethodName: "PredictAll",
+			Handler:    _Predictor_PredictAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

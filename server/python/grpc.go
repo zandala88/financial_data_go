@@ -53,3 +53,16 @@ func SendPredictRequest(req *pb.PredictRequest) (float64, error) {
 	}
 	return resp.Val, nil
 }
+
+func SendPredictAllRequest(req *pb.PredictAllRequest) ([]float64, error) {
+	semaphore <- struct{}{}        // 获取信号量
+	defer func() { <-semaphore }() // 释放信号量
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	resp, err := rpcCli.PredictAll(ctx, req)
+	if err != nil {
+		zap.S().Error("[SendPredictRequest] [err] = ", err.Error())
+		return nil, err
+	}
+	return resp.Val, nil
+}

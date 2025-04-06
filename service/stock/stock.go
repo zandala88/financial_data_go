@@ -9,7 +9,6 @@ import (
 	"financia/public/db/dao"
 	"financia/public/db/model"
 	"financia/server/python"
-	pb "financia/server/python/grpc"
 	"financia/server/spark"
 	"financia/server/tushare"
 	"financia/service/fut"
@@ -617,8 +616,6 @@ func RankStock(c *gin.Context) {
 			continue
 		}
 
-		//zap.S().Debugf("[RankStock] [tsCode] = %s [valToday] = %f [valPredict] = %f", tsCode, valToday, valPredict)
-
 		respList = append(respList, &RankStockSimple{
 			Id:    stockMap[tsCode].Id,
 			Name:  stockMap[tsCode].Name,
@@ -658,117 +655,42 @@ func AccuracyStock(c *gin.Context) {
 		return
 	}
 
-	// 获取股票预测数据
-	predict, err := dao.GetAllStockPredict(c, stockInfo.TsCode)
+	stockData, err := dao.GetAllStockData(c, stockInfo.TsCode)
 	if err != nil {
-		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockPredict] [err] = %s", err.Error())
-		return
-	}
-	// 如果数据少于30条，请求python获取
-	if len(predict) < 30 {
-		stockData, err := dao.GetAllStockData(c, stockInfo.TsCode)
-		if err != nil {
-			util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockData] [err] = %s", err.Error())
-			return
-		}
-
-		// 长度大于50，获取最后50条数据
-		if len(stockData) > 50 {
-			stockData = stockData[len(stockData)-50:]
-		}
-		if len(stockData) < 30 {
-			goto End
-		}
-
-		l, r := 0, 31
-		for r < len(stockData) {
-			tmp := stockData[l:r]
-			pyReq := &pb.PredictRequest{
-				Data: make([]*pb.DataPoint, 0, len(tmp)),
-			}
-			for _, v := range tmp[l:r] {
-				if v == nil {
-					zap.S().Debugf("[AccuracyStock] [nil] [v] = %v", v)
-					continue
-				}
-				pyReq.Data = append(pyReq.Data, &pb.DataPoint{
-					Date:   v.TradeDate.Format(time.DateOnly),
-					CoImf1: v.Open,
-					CoImf2: v.High,
-					CoImf3: v.Low,
-					CoImf4: float64(v.Vol),
-					Target: v.Close,
-				})
-			}
-
-			l++
-			r++
-
-			val, _ := python.SendPredictRequest(pyReq)
-			val = math.Floor(val*1000) / 1000
-			lastDay := util.ConvertDateStrToTime(tmp[len(tmp)-1].TradeDate.Format(time.DateOnly), time.DateOnly).Add(time.Hour * 24)
-
-			dao.InsertStockPredict(context.Background(), &model.StockPredict{
-				TsCode:    stockInfo.TsCode,
-				TradeDate: lastDay,
-				Predict:   val,
-			})
-		}
-	}
-End:
-	predict, err = dao.GetAllStockPredict(c, stockInfo.TsCode)
-	if err != nil {
-		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockPredict] [err] = %s", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetAllStockData] [err] = %s", err.Error())
 		return
 	}
 
-	predictMap := make(map[string]float64, len(predict))
-	for _, v := range predict {
-		predictMap[v.TradeDate.Format(time.DateOnly)] = v.Predict
-	}
-
-	limitDate := predict[0].TradeDate
-	// 获取股票数据
-	stockData, err := dao.GetStockData(c, stockInfo.TsCode, limitDate.Format(time.DateOnly), time.Now().Format(time.DateOnly))
+	predictList, err := python.PythonPredictAllStock(stockInfo.Id, stockData)
 	if err != nil {
-		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [GetStockData] [err] = %s", err.Error())
+		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [PythonPredictAllStock] [err] = %s", err.Error())
 		return
 	}
 
-	// 计算涨跌准确率
+	// 去掉stockData前30条数据
+	stockData = stockData[30:]
+
 	var (
 		trueNum, total int
 		sumClose       float64
 	)
-	for _, v := range stockData {
-		predictClose, ok := predictMap[v.TradeDate.Format(time.DateOnly)]
-		if !ok {
-			continue
-		}
 
+	for i, v := range stockData {
 		sumClose += v.Close
 		total++
 		// 相乘符号大于0，相同走势
-		if (v.Close-v.PreClose)*(predictClose-v.PreClose) > 0 {
+		if (v.Close-v.PreClose)*(predictList[i]-v.PreClose) > 0 {
 			trueNum++
 		}
 	}
 
 	avg := sumClose / float64(total)
 	var sRes, Stot float64
-	for _, v := range stockData {
-		predictClose, ok := predictMap[v.TradeDate.Format(time.DateOnly)]
-		if !ok {
-			continue
-		}
-
-		sRes += math.Pow(v.Close-predictClose, 2)
+	for i, v := range stockData {
+		sRes += math.Pow(v.Close-predictList[i], 2)
 		Stot += math.Pow(v.Close-avg, 2)
-	}
 
-	if total == 0 {
-		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [total] [err] = %s", "total is 0")
-		return
+		zap.S().Debugf("[predictClose] = %f, [avg] = %f, [close] = %f", predictList[i], avg, v.Close)
 	}
 
 	accuracy := float64(trueNum) / float64(total) * 100
