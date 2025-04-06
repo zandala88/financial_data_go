@@ -63,7 +63,8 @@ func PythonPredictStock(id int, stockData []*model.StockData) (float64, error) {
 		})
 		var nextTradeDate string
 		for _, v := range resp.Sse {
-			if v.IsOpen == 1 && util.ConvertDateStrToTime(v.CalDate, time.DateOnly).Before(stockData[len(stockData)-1].TradeDate) {
+			zap.S().Debugf("[PredictStock] [v] = %v, %v", util.ConvertDateStrToTime(v.CalDate, time.DateOnly).After(stockData[len(stockData)-1].TradeDate), util.ConvertDateStrToTime(v.CalDate, time.DateOnly))
+			if v.IsOpen == 1 && util.ConvertDateStrToTime(v.CalDate, time.DateOnly).After(stockData[len(stockData)-1].TradeDate) {
 				zap.S().Debugf("[PredictStock] [nextTradeDate] = %v, %v", v.CalDate, stockData[len(stockData)-1].TradeDate)
 				nextTradeDate = v.CalDate
 				break
@@ -126,7 +127,7 @@ func PythonPredictFund(id int, fundData []*model.FundData) (float64, error) {
 		})
 		var nextTradeDate string
 		for _, v := range resp.Sse {
-			if v.IsOpen == 1 && util.ConvertDateStrToTime(v.CalDate, time.DateOnly).Before(fundData[len(fundData)-1].TradeDate) {
+			if v.IsOpen == 1 && util.ConvertDateStrToTime(v.CalDate, time.DateOnly).After(fundData[len(fundData)-1].TradeDate) {
 				nextTradeDate = v.CalDate
 				break
 			}
