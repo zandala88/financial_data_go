@@ -662,8 +662,8 @@ func AccuracyStock(c *gin.Context) {
 	}
 
 	// 限制预测数量，降低服务压力
-	if len(stockData) > 500 {
-		stockData = stockData[len(stockData)-500:]
+	if len(stockData) > 1500 {
+		stockData = stockData[len(stockData)-1500:]
 	}
 
 	predictList, err := python.PythonPredictAllStock(stockInfo.Id, stockData)
