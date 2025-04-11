@@ -707,6 +707,6 @@ func AccuracyStock(c *gin.Context) {
 		Accuracy: fmt.Sprintf("%.2f", accuracy),
 		R2:       fmt.Sprintf("%.2f", 100-(100*(sRes/Stot))),
 		List:     last7,
-		Val:      predictList[len(predictList)-1],
+		Val:      math.Floor(predictList[len(predictList)-1]*1000) / 1000,
 	})
 }
