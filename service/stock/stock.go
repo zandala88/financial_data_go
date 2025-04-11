@@ -689,8 +689,6 @@ func AccuracyStock(c *gin.Context) {
 	for i, v := range stockData {
 		sRes += math.Pow(v.Close-predictList[i], 2)
 		Stot += math.Pow(v.Close-avg, 2)
-
-		zap.S().Debugf("[predictClose] = %f, [avg] = %f, [close] = %f", predictList[i], avg, v.Close)
 	}
 
 	accuracy := float64(trueNum) / float64(total) * 100
