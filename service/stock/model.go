@@ -167,6 +167,8 @@ type AccuracyStockReq struct {
 }
 
 type AccuracyStockResp struct {
-	Accuracy string `json:"accuracy"`
-	R2       string `json:"r2"`
+	Accuracy string    `json:"accuracy"`
+	R2       string    `json:"r2"`
+	List     []float64 `json:"list"`
+	Val      float64   `json:"val"`
 }

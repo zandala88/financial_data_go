@@ -661,6 +661,11 @@ func AccuracyStock(c *gin.Context) {
 		return
 	}
 
+	// 限制预测数量，降低服务压力
+	if len(stockData) > 500 {
+		stockData = stockData[len(stockData)-500:]
+	}
+
 	predictList, err := python.PythonPredictAllStock(stockInfo.Id, stockData)
 	if err != nil {
 		util.FailRespWithCodeAndZap(c, util.InternalServerError, "[AccuracyStock] [PythonPredictAllStock] [err] = %s", err.Error())
@@ -674,6 +679,11 @@ func AccuracyStock(c *gin.Context) {
 		trueNum, total int
 		sumClose       float64
 	)
+
+	last7 := make([]float64, 0, 7)
+	for i := 0; i < 7; i++ {
+		last7 = append(last7, stockData[len(stockData)-7+i].Close)
+	}
 
 	for i, v := range stockData {
 		sumClose += v.Close
@@ -692,8 +702,11 @@ func AccuracyStock(c *gin.Context) {
 	}
 
 	accuracy := float64(trueNum) / float64(total) * 100
+
 	util.SuccessResp(c, &AccuracyStockResp{
 		Accuracy: fmt.Sprintf("%.2f", accuracy),
 		R2:       fmt.Sprintf("%.2f", 100-(100*(sRes/Stot))),
+		List:     last7,
+		Val:      predictList[len(predictList)-1],
 	})
 }
