@@ -13,7 +13,7 @@ import (
 var (
 	rpcConn   *grpc.ClientConn
 	rpcCli    pb.PredictorClient
-	semaphore = make(chan struct{}, 3)
+	semaphore = make(chan struct{}, 1)
 )
 
 // NewGRPCClient
@@ -57,7 +57,7 @@ func SendPredictRequest(req *pb.PredictRequest) (float64, error) {
 func SendPredictAllRequest(req *pb.PredictAllRequest) ([]float64, error) {
 	semaphore <- struct{}{}        // 获取信号量
 	defer func() { <-semaphore }() // 释放信号量
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 	resp, err := rpcCli.PredictAll(ctx, req)
 	if err != nil {
