@@ -87,6 +87,9 @@ func DataStock(c *gin.Context) {
 			TsCode:    info.TsCode,
 			StartDate: date,
 		})
+
+		zap.S().Debugf("异步更新数据 %s, 开始时间 last = %s,date = %s", info.TsCode, last.TradeDate, date)
+
 		if err := dao.InsertStockData(ctx, data); err != nil {
 			zap.S().Error("[DataStock] [InsertStockData] [err] = ", err.Error())
 		}
