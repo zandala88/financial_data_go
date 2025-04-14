@@ -13,7 +13,7 @@ import (
 var (
 	rpcConn   *grpc.ClientConn
 	rpcCli    pb.PredictorClient
-	semaphore = make(chan struct{}, 1)
+	semaphore = make(chan struct{}, 2)
 )
 
 // NewGRPCClient
