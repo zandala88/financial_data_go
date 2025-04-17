@@ -16,6 +16,8 @@
 
 ## 二、功能展示
 
+![main.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/main.png?raw=true)
+
 ### 1. 上市公司信息
 
 该模块提供上司公司的信息展示，可通过省份进行筛选或者进行搜索
@@ -32,9 +34,8 @@
 
 拥有数据展示图表以及每支股票的具体信息，并且可以点击查看详情内容
 
-![stock-main-1.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/stock-main-1.png?raw=true)
+![stock-main-1.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/stock-main.png?raw=true)
 
-![stock-main-2.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/stock-main-2.png?raw=true)
 
 #### 2.2 详情界面
 
@@ -50,13 +51,11 @@
 
 ![fund-main.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/fund-main.png?raw=true)
 
-![fund-main-2.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/fund-main-2.png?raw=true)
-
 ### 4. 期货数据
 
 期货数据模块拥有交易日历的展示以及期货数据的展示、期货数据的展示包括**成交量**、**成交金额**、**持仓量**、**收盘价**、**同比数据**
 
-![futures-main-1.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/futures-main-1.png?raw=true)
+![futures-main.png](https://github.com/zandala88/financial_data_go/blob/main/.github/img/futures-main.png?raw=true)
 
 ### 5. 宏观经济
 
