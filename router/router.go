@@ -133,19 +133,19 @@ func HTTPRouter() {
 		auth.POST("/fund/follow", fund.FollowFund)
 
 		// 股票 - 预测数据
-		free.GET("/stock/predict", stock.PredictStock)
+		auth.GET("/stock/predict", stock.PredictStock)
 
 		// 股票 - AI分析
-		free.GET("/stock/ai", stock.AiStock)
+		auth.GET("/stock/ai", stock.AiStock)
 
 		// 公募基金 - 预测数据
-		free.GET("/fund/predict", fund.PredictFund)
+		auth.GET("/fund/predict", fund.PredictFund)
 
 		// 公募基金 - AI分析
-		free.GET("/fund/ai", fund.AiFund)
+		auth.GET("/fund/ai", fund.AiFund)
 
 		// 个人 - 信息提示确认
-		free.POST("/user/tip/confirm", user.TipConfirm)
+		auth.POST("/user/tip/confirm", user.TipConfirm)
 	}
 
 	httpAddr := fmt.Sprintf("%s:%s", config.Configs.App.IP, config.Configs.App.Port)

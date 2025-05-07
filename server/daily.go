@@ -70,7 +70,7 @@ func DailyPredictBefore() {
 	wg := sync.WaitGroup{}
 	for _, tsCode := range tsCodeList {
 		stockData, _ := dao.GetStockDataLimit30(ctx, tsCode)
-		last := stockData[len(stockData)-1]
+		last := stockData[0]
 		date := strings.ReplaceAll(last.TradeDate.Add(time.Hour*24).Format(time.DateOnly), "-", "")
 		data := tushare.DailyStockAll(ctx, &tushare.DailyReq{
 			TsCode:    tsCode,
