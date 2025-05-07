@@ -1,7 +1,6 @@
 package public
 
 const (
-	RedisKeyFundSalesRatio  = "fund_sales_ratio"
 	RedisKeyShiborEconomics = "shibor_economics"
 	RedisKeyCnGdpEconomics  = "cn_gdp_economics"
 	RedisKeyCnCpiEconomics  = "cn_cpi_economics"
@@ -17,8 +16,6 @@ const (
 	RedisKeyFundFollow  = "fund_follow:%d"
 	RedisKeyFundToday   = "fund_today:%s"
 
-	RedisKeyStockList = "stock_list:%s%s%s%s%d%d"
-
 	RedisKeyStockDataDoToday = "stock_data_do_today:%s"
 	RedisKeyFundDataDoToday  = "fund_data_do_today:%s"
 
@@ -26,7 +23,6 @@ const (
 
 	RedisKeyPredictList = "predict_list"
 	RedisKeyRankStock   = "rank_stock:%s:%d"
-	RedisKeyRankFund    = "rank_fund:%s:%d"
 )
 
 const (
@@ -66,10 +62,10 @@ const (
 )
 
 const (
-	EmptyUserId = 0
+	EmptyUserId = iota
 )
 
 const (
-	RedisNotExists = 0
-	RedisExists    = 1
+	RedisNotExists = iota
+	RedisExists
 )

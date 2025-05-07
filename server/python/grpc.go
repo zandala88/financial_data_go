@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	rpcConn   *grpc.ClientConn
 	rpcCli    pb.PredictorClient
 	semaphore = make(chan struct{}, 2)
 )
@@ -32,7 +31,6 @@ func NewGRPCClient() {
 	}
 
 	client := pb.NewPredictorClient(conn)
-	rpcConn = conn
 	rpcCli = client
 	return
 }

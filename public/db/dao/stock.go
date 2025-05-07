@@ -165,10 +165,6 @@ func CheckStockData(ctx context.Context, tsCode string) (bool, error) {
 	return count > 0, err
 }
 
-func CreateStockData(ctx context.Context, data *model.StockData) error {
-	return connector.GetDB().WithContext(ctx).Create(data).Error
-}
-
 func InsertStockData(ctx context.Context, data []*model.StockData) error {
 	// 分批插入
 	for i := 0; i < len(data); i += 1000 {
@@ -181,15 +177,4 @@ func InsertStockData(ctx context.Context, data []*model.StockData) error {
 		}
 	}
 	return nil
-}
-
-func InsertStockPredict(ctx context.Context, data *model.StockPredict) {
-	connector.GetDB().WithContext(ctx).Create(data)
-}
-
-func GetAllStockPredict(ctx context.Context, tsCode string) ([]*model.StockPredict, error) {
-	var stockPredict []*model.StockPredict
-	err := connector.GetDB().WithContext(ctx).Model(&model.StockPredict{}).Where("f_ts_code", tsCode).
-		Order("f_trade_date").Find(&stockPredict).Error
-	return stockPredict, err
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
+func DailyStockAll(_ context.Context, req *DailyReq) []*model.StockData {
 	r := tuSharePost(public.TuShareDaily, req, "")
 
 	var resp DailyResp
@@ -39,7 +39,7 @@ func DailyStockAll(ctx context.Context, req *DailyReq) []*model.StockData {
 	return data
 }
 
-func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
+func DailyFundAll(_ context.Context, req *DailyReq) []*model.FundData {
 	r := tuSharePost(public.TuShareFundDaily, req, "")
 
 	var resp DailyResp
@@ -68,7 +68,7 @@ func DailyFundAll(ctx context.Context, req *DailyReq) []*model.FundData {
 	return data
 }
 
-func FundSalesRatio(ctx context.Context) []*FundSalesRatioResp {
+func FundSalesRatio(_ context.Context) []*FundSalesRatioResp {
 	r := tuSharePost(public.TuShareFundSalesRatio, nil, "")
 
 	var resp DailyResp
@@ -94,7 +94,7 @@ func FundSalesRatio(ctx context.Context) []*FundSalesRatioResp {
 	return list
 }
 
-func FundSalesVol(ctx context.Context) []*FundSalesVolResp {
+func FundSalesVol(_ context.Context) []*FundSalesVolResp {
 	r := tuSharePost(public.TuShareFundSalesVol, nil, "")
 
 	var resp DailyResp
@@ -118,7 +118,7 @@ func FundSalesVol(ctx context.Context) []*FundSalesVolResp {
 	return list
 }
 
-func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
+func FutTradeCal(_ context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 	now := time.Now().Add(-31 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
 	end := time.Now().Add(52 * 24 * time.Hour).Format(util.TimeDateOnlyWithOutSep)
 	r := tuSharePost(public.TuShareFutTradeCal, &DailyReq{
@@ -163,7 +163,7 @@ func FutTradeCal(ctx context.Context) ([]*FutTradeCalResp, []*FutTradeCalResp) {
 	return sse, szse
 }
 
-func FutWeeklyDetail(ctx context.Context, prd string) []*FutWeeklyDetailResp {
+func FutWeeklyDetail(_ context.Context, prd string) []*FutWeeklyDetailResp {
 	r := tuSharePost(public.TuShareFutWeeklyDetail, &DailyReq{
 		Prd: prd,
 	}, "")
@@ -201,7 +201,7 @@ func FutWeeklyDetail(ctx context.Context, prd string) []*FutWeeklyDetailResp {
 	return list
 }
 
-func StockIncome(ctx context.Context, tsCode string) []*StockIncomeResp {
+func StockIncome(_ context.Context, tsCode string) []*StockIncomeResp {
 	r := tuSharePost(public.TuShareStockIncome, &DailyReq{
 		TsCode:     tsCode,
 		ReportType: 1,
@@ -232,7 +232,7 @@ func StockIncome(ctx context.Context, tsCode string) []*StockIncomeResp {
 	return list
 }
 
-func StockForecast(ctx context.Context, tsCode string) []*StockForecastResp {
+func StockForecast(_ context.Context, tsCode string) []*StockForecastResp {
 	r := tuSharePost(public.TuShareStockForecast, &DailyReq{
 		TsCode: tsCode,
 	}, "ann_date,type,p_change_min,p_change_max,net_profit_min,"+
@@ -266,7 +266,7 @@ func StockForecast(ctx context.Context, tsCode string) []*StockForecastResp {
 	return list
 }
 
-func StockHolderTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
+func StockHolderTop10(_ context.Context, tsCode string) []*StockTop10Resp {
 	r := tuSharePost(public.TuShareStockHolderTop10, &DailyReq{
 		TsCode: tsCode,
 	}, "ann_date,holder_name,hold_amount,hold_ratio,hold_float_ratio,hold_change,holder_type")
@@ -293,7 +293,7 @@ func StockHolderTop10(ctx context.Context, tsCode string) []*StockTop10Resp {
 	return list
 }
 
-func StockHsgtTop10(ctx context.Context, date string) ([]*StockHsgtTop10Resp, []*StockHsgtTop10Resp) {
+func StockHsgtTop10(_ context.Context, date string) ([]*StockHsgtTop10Resp, []*StockHsgtTop10Resp) {
 	r := tuSharePost(public.TuShareStockHsgtTop10, &DailyReq{
 		TradeDate: date,
 	}, "name,close,change,rank,market_type,amount")
@@ -331,7 +331,7 @@ func StockHsgtTop10(ctx context.Context, date string) ([]*StockHsgtTop10Resp, []
 	return sh, sz
 }
 
-func EconomicsShibor(ctx context.Context) []*EconomicsShiborResp {
+func EconomicsShibor(_ context.Context) []*EconomicsShiborResp {
 	r := tuSharePost(public.TuShareEconomicsShibor, &DailyReq{
 		StartDate: "20240101",
 	}, "")
@@ -361,7 +361,7 @@ func EconomicsShibor(ctx context.Context) []*EconomicsShiborResp {
 	return list
 }
 
-func EconomicsCnGDP(ctx context.Context, quarter string) []*EconomicsCnGDPResp {
+func EconomicsCnGDP(_ context.Context, quarter string) []*EconomicsCnGDPResp {
 	r := tuSharePost(public.TuShareEconomicsCnGDP, &DailyReq{
 		Q: quarter,
 	}, "gdp,gdp_yoy,pi,pi_yoy,si,si_yoy,ti,ti_yoy")
@@ -389,7 +389,7 @@ func EconomicsCnGDP(ctx context.Context, quarter string) []*EconomicsCnGDPResp {
 	return list
 }
 
-func EconomicsCnCPI(ctx context.Context) []*EconomicsCnCPIResp {
+func EconomicsCnCPI(_ context.Context) []*EconomicsCnCPIResp {
 	r := tuSharePost(public.TuShareEconomicsCnCPI, &DailyReq{
 		StartM: "202401",
 	}, "month,nt_yoy,nt_mom,nt_accu,town_yoy,town_mom,town_accu,cnt_yoy,cnt_mom,cnt_accu")

@@ -1,22 +1,12 @@
 package util
 
 import (
-	"strings"
 	"time"
 )
 
 const (
 	TimeDateOnlyWithOutSep = "20060102"
 )
-
-// RFC3339ToNormalTime
-// RFC3339 日期格式标准化
-func RFC3339ToNormalTime(rfc3339 string) string {
-	if len(rfc3339) < 19 || rfc3339 == "" || !strings.Contains(rfc3339, "T") {
-		return rfc3339
-	}
-	return strings.Split(rfc3339, "T")[0] + " " + strings.Split(rfc3339, "T")[1][:8]
-}
 
 func ConvertDateStrToTime(dateStr string, layout string) time.Time {
 	// 使用 time.Parse 方法转换
@@ -44,10 +34,4 @@ func SecondsUntilMidnight() int {
 	// 计算距离 0 点的剩余时间（秒）
 	remaining := midnight.Sub(now)
 	return int(remaining.Seconds())
-}
-
-func GetYesterdayFormat(format string) string {
-	// 获取昨天的时间
-	yesterday := time.Now().AddDate(0, 0, -1)
-	return yesterday.Format(format)
 }

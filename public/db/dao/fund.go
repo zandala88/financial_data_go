@@ -108,14 +108,6 @@ func InsertFundData(ctx context.Context, data []*model.FundData) error {
 	return nil
 }
 
-func CreateFund(ctx context.Context, fund *model.FundInfo) error {
-	return connector.GetDB().WithContext(ctx).Create(fund).Error
-}
-
-func InsertFund(ctx context.Context, data []*model.FundInfo) error {
-	return connector.GetDB().WithContext(ctx).Create(data).Error
-}
-
 func UpdateFund(ctx context.Context, fund *model.FundInfo) error {
 	return connector.GetDB().WithContext(ctx).Model(&model.FundInfo{}).
 		Where("id = ?", fund.Id).Updates(fund).Error
@@ -145,8 +137,4 @@ func GetFundDataLimit30(ctx context.Context, tsCode string) ([]*model.FundData, 
 	rdb.Set(ctx, fmt.Sprintf(public.RedisKeyFundToday, tsCode), fundData[0].Close, time.Duration(util.SecondsUntilMidnight())*time.Second)
 
 	return fundData, err
-}
-
-func InsertFundPredict(ctx context.Context, data *model.FundPredict) {
-	connector.GetDB().WithContext(ctx).Create(data)
 }

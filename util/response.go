@@ -13,13 +13,6 @@ func SuccessResp(c *gin.Context, data interface{}) {
 	})
 }
 
-func FailResp(c *gin.Context, msg string) {
-	c.JSON(200, gin.H{
-		"code": -1,
-		"msg":  msg,
-	})
-}
-
 func FailRespWithCode(c *gin.Context, code int) {
 	c.JSON(200, gin.H{
 		"code": code,
@@ -30,10 +23,6 @@ func FailRespWithCode(c *gin.Context, code int) {
 func FailRespWithCodeAndZap(c *gin.Context, code int, format, logStr string) {
 	FailRespWithCode(c, code)
 	zap.S().Errorf(format, logStr)
-}
-
-func GetErrorMessage(code int) string {
-	return errMsg[code]
 }
 
 var errMsg = map[int]string{

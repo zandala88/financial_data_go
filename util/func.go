@@ -1,7 +1,5 @@
 package util
 
-import "math"
-
 // SMA 简单移动平均线
 func SMA(prices []float64, period int) []float64 {
 	if len(prices) < period {
@@ -139,28 +137,4 @@ func RSI(prices []float64, period int) []float64 {
 	}
 
 	return rsi
-}
-
-// BollingerBands 布林带
-func BollingerBands(prices []float64, period int, k float64) ([]float64, []float64, []float64) {
-	if len(prices) < period {
-		return nil, nil, nil
-	}
-
-	sma := SMA(prices, period)
-	upperBand := make([]float64, len(sma))
-	lowerBand := make([]float64, len(sma))
-
-	for i := period - 1; i < len(prices); i++ {
-		sum := 0.0
-		for j := i - period + 1; j <= i; j++ {
-			sum += (prices[j] - sma[i-period+1]) * (prices[j] - sma[i-period+1])
-		}
-		stdDev := math.Sqrt(sum / float64(period))
-
-		upperBand[i-period+1] = sma[i-period+1] + k*stdDev
-		lowerBand[i-period+1] = sma[i-period+1] - k*stdDev
-	}
-
-	return upperBand, sma, lowerBand
 }
