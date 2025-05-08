@@ -72,6 +72,7 @@ type ListStockResp struct {
 	List         []*ListStockSimple `json:"list"`
 	TotalPageNum int                `json:"totalPageNum"`
 	HasMore      bool               `json:"hasMore"`
+	Count        int64              `json:"count"`
 }
 
 type ListStockSimple struct {

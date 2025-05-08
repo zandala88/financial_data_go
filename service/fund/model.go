@@ -52,6 +52,7 @@ type ListFundResp struct {
 	List         []*ListFundSimple `json:"list"`
 	TotalPageNum int               `json:"totalPageNum"`
 	HasMore      bool              `json:"hasMore"`
+	Count        int64             `json:"count"`
 }
 
 type ListFundSimple struct {

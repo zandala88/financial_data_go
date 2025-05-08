@@ -274,6 +274,7 @@ func ListStock(c *gin.Context) {
 		List:         respList,
 		HasMore:      count > int64(req.Page*(req.PageSize-1)+len(list)),
 		TotalPageNum: int(count/int64(req.PageSize) + 1),
+		Count:        count,
 	}
 
 	util.SuccessResp(c, resp)
